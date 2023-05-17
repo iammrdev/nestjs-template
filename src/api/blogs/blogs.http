@@ -44,3 +44,21 @@ DELETE {{baseUrl}}/blogs/{{id}} HTTP/1.1
 
 ###
 
+## Get post list by blog
+GET {{baseUrl}}/blogs/{{id}}/posts HTTP/1.1
+Content-Type: application/json
+
+###
+
+## Create post by blog
+
+POST {{baseUrl}}/blogs/{{id}}/posts HTTP/1.1
+Content-Type: application/json
+
+{
+  "title": "New Effect 2023",
+  "shortDescription": "Incredible effect in React",
+  "content": "https://reactjs.ru"
+}
+
+###

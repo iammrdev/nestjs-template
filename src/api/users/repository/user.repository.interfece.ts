@@ -1,5 +1,6 @@
-export class GetBlogsParams {
-  public searchNameTerm: string;
+export class GetUsersParams {
+  public searchLoginTerm: string;
+  public searchEmailTerm: string;
   public sortBy: string;
   public sortDirection: 'desc' | 'asc';
   public pageNumber: number;

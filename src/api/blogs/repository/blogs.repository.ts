@@ -30,7 +30,7 @@ export class BlogsRepository
   }
 
   private getPaginationFilter(params: GetBlogsParams) {
-    if (params.searchNameTerm) {
+    if (!params.searchNameTerm) {
       return {};
     }
 
@@ -49,7 +49,7 @@ export class BlogsRepository
     const filter = this.getPaginationFilter(params);
     const totalCount = await this.blogsModel.countDocuments(filter).exec();
 
-    const pagination = new Pagination({
+    const pagination = new Pagination<Blog>({
       page: params.pageNumber,
       pageSize: params.pageSize,
       totalCount,
@@ -62,10 +62,7 @@ export class BlogsRepository
       .limit(pagination.pageSize)
       .exec();
 
-    return {
-      ...pagination.toView(),
-      items: dbBlogs.map(this.buildBlog),
-    };
+    return pagination.setItems(dbBlogs.map(this.buildBlog)).toView();
   }
 
   public async findById(id: string): Promise<Blog | null> {

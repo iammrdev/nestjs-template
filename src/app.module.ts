@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule, MongooseModuleAsyncOptions } from '@nestjs/mongoose';
+import { UsersModule } from './api/users/users.module';
 import { BlogsModule } from './api/blogs/blogs.module';
 
 const getMongoDbConfig = (): MongooseModuleAsyncOptions => {
@@ -11,7 +12,11 @@ const getMongoDbConfig = (): MongooseModuleAsyncOptions => {
 };
 
 @Module({
-  imports: [MongooseModule.forRootAsync(getMongoDbConfig()), BlogsModule],
+  imports: [
+    MongooseModule.forRootAsync(getMongoDbConfig()),
+    UsersModule,
+    BlogsModule,
+  ],
   controllers: [],
   providers: [],
 })
