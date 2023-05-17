@@ -1,0 +1,8 @@
+@baseUrl =  http://localhost:3000
+@token = ''
+
+
+## Delete all data
+DELETE {{baseUrl}}/testing/all-data HTTP/1.1
+
+###
