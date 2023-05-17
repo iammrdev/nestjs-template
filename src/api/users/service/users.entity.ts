@@ -13,8 +13,8 @@ export class UsersEntity {
   public email: string;
   public createdAt?: Date;
 
-  constructor(user: Props) {
-    this.fillEntity(user);
+  constructor(props: Props) {
+    this.fillEntity(props);
   }
 
   public async setPassword(password: string): Promise<UsersEntity> {
@@ -27,9 +27,10 @@ export class UsersEntity {
     return compare(password, this.passwordHash);
   }
 
-  public fillEntity(user: Props) {
-    this.login = user.login;
-    this.email = user.email;
+  public fillEntity(props: Props) {
+    this.login = props.login;
+    this.email = props.email;
+    this.createdAt = props.createdAt;
   }
 
   public toObject() {

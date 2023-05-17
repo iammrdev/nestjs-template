@@ -26,8 +26,8 @@ export class PostsEntity {
   public extendedLikesInfo: ExtendedLikesInfo;
   public createdAt?: Date;
 
-  constructor(post: Props) {
-    this.fillEntity(post);
+  constructor(props: Props) {
+    this.fillEntity(props);
   }
 
   public fillEntity(props: Props) {

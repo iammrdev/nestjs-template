@@ -24,8 +24,8 @@ export class CommentsEntity {
   public likesInfo: LikesInfo;
   public createdAt?: Date;
 
-  constructor(comment: Props) {
-    this.fillEntity(comment);
+  constructor(props: Props) {
+    this.fillEntity(props);
   }
 
   public fillEntity(props: Props) {

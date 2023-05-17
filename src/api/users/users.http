@@ -1,4 +1,4 @@
-@baseUrl =  http://localhost:3000@token = 
+@baseUrl =  http://localhost:3000 
 @token = 
 @id = 
 @paginationParams = pageNumber=1&pageSize=10&sortBy=login
