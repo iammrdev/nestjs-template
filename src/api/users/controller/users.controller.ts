@@ -32,10 +32,7 @@ export class UsersController {
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'User is not exists',
-  })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not Found' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUser(@Param('id') id: string) {

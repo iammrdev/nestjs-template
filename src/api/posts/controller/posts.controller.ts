@@ -21,6 +21,7 @@ import {
   UpdatePostDto,
 } from './posts.controller.interface';
 import { BlogsService } from '../../blogs';
+import { CommentsService, GetCommentsQuery } from '../../comments';
 
 @ApiTags('posts')
 @Controller('posts')
@@ -29,6 +30,7 @@ export class PostsController {
     private readonly postsService: PostsService,
     @Inject(forwardRef(() => BlogsService))
     private readonly blogsService: BlogsService,
+    private readonly commentsService: CommentsService,
   ) {}
 
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
@@ -53,13 +55,10 @@ export class PostsController {
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Post is not exists',
-  })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not found' })
   @Get(':id')
   async getPost(@Param('id') id: string) {
-    const existedPost = this.postsService.getPostById(id);
+    const existedPost = await this.postsService.getPostById(id);
 
     if (!existedPost) {
       throw new NotFoundException('Post is not found');
@@ -69,10 +68,7 @@ export class PostsController {
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Blog is not exists',
-  })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not found' })
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updatePost(@Param('id') id: string, @Body() dto: UpdatePostDto) {
@@ -89,10 +85,7 @@ export class PostsController {
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'If specified post is not exists',
-  })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not found' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deletePost(@Param('id') id: string) {
@@ -103,5 +96,20 @@ export class PostsController {
     }
 
     await this.postsService.deletePostById(id);
+  }
+
+  @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
+  @Get(':id/comments')
+  async getPostsByBlog(
+    @Param('id') id: string,
+    @Query() query: GetCommentsQuery,
+  ) {
+    const existedPost = await this.postsService.getPostById(id);
+
+    if (!existedPost) {
+      throw new NotFoundException('Post is not found');
+    }
+
+    return this.commentsService.getCommentByPost(id, query);
   }
 }

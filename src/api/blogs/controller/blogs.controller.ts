@@ -44,10 +44,7 @@ export class BlogsController {
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Blog is not exists',
-  })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not found' })
   @Get(':id')
   async getBlog(@Param('id') id: string) {
     const existedBlog = await this.blogsService.getBlogById(id);
@@ -60,10 +57,7 @@ export class BlogsController {
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Blog is not exists',
-  })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not found' })
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateBlog(@Param('id') id: string, @Body() dto: UpdateBlogDto) {
@@ -77,10 +71,7 @@ export class BlogsController {
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Blog is not exists',
-  })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not found' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBlog(@Param('id') id: string) {

@@ -40,3 +40,9 @@ Content-Type: application/json
 DELETE {{baseUrl}}/posts/{{id}} HTTP/1.1
 
 ###
+
+## Get comments by post
+GET {{baseUrl}}/posts/{{id}}/comments HTTP/1.1
+Content-Type: application/json
+
+###

@@ -7,6 +7,7 @@ import { Post } from '../../../types/posts';
 import { PostsEntity } from '../service/posts.entity';
 import { GetPostsParams } from './posts.repository.interfece';
 import { Pagination } from '../../../core/pagination';
+import { PaginationList } from '../../../types/common';
 
 @Injectable()
 export class PostsRepository
@@ -36,7 +37,9 @@ export class PostsRepository
     return this.buildPost(dbPost);
   }
 
-  public async findAll(params: GetPostsParams): Promise<any> {
+  public async findAll(
+    params: GetPostsParams,
+  ): Promise<PaginationList<Post[]>> {
     const totalCount = await this.postsModel.countDocuments().exec();
 
     const pagination = new Pagination<Post>({

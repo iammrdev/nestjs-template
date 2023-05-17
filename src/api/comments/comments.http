@@ -1,0 +1,9 @@
+@baseUrl =  http://localhost:3000
+@token = 
+@id = 
+
+## Get comment by id
+GET {{baseUrl}}/comments/{{id}} HTTP/1.1
+Content-Type: application/json
+
+###

@@ -1,18 +1,20 @@
 import { LikeInfo, LikeStatus } from '../../../types/likes';
 
+type ExtendedLikesInfo = {
+  dislikesCount: number;
+  likesCount: number;
+  myStatus: LikeStatus;
+  newestLikes: LikeInfo[];
+};
+
 type Props = {
   title: string;
   shortDescription: string;
   blogId: string;
   blogName: string;
   content: string;
+  extendedLikesInfo: ExtendedLikesInfo;
   createdAt?: Date;
-  extendedLikesInfo: {
-    dislikesCount: number;
-    likesCount: number;
-    myStatus: LikeStatus;
-    newestLikes: LikeInfo[];
-  };
 };
 
 export class PostsEntity {
@@ -21,13 +23,8 @@ export class PostsEntity {
   public blogId: string;
   public blogName: string;
   public content: string;
+  public extendedLikesInfo: ExtendedLikesInfo;
   public createdAt?: Date;
-  public extendedLikesInfo: {
-    dislikesCount: number;
-    likesCount: number;
-    myStatus: LikeStatus;
-    newestLikes: LikeInfo[];
-  };
 
   constructor(post: Props) {
     this.fillEntity(post);
@@ -39,8 +36,8 @@ export class PostsEntity {
     this.blogId = props.blogId;
     this.blogName = props.blogName;
     this.content = props.content;
-    this.createdAt = props.createdAt;
     this.extendedLikesInfo = props.extendedLikesInfo;
+    this.createdAt = props.createdAt;
   }
 
   public toObject() {
@@ -50,8 +47,8 @@ export class PostsEntity {
       blogId: this.blogId,
       blogName: this.blogName,
       content: this.content,
-      createdAt: this.createdAt,
       extendedLikesInfo: this.extendedLikesInfo,
+      createdAt: this.createdAt,
     };
   }
 }

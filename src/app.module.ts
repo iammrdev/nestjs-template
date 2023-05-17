@@ -3,6 +3,7 @@ import { MongooseModule, MongooseModuleAsyncOptions } from '@nestjs/mongoose';
 import { UsersModule } from './api/users';
 import { BlogsModule } from './api/blogs';
 import { PostsModule } from './api/posts';
+import { CommentsModule } from './api/comments';
 
 const getMongoDbConfig = (): MongooseModuleAsyncOptions => {
   return {
@@ -18,6 +19,7 @@ const getMongoDbConfig = (): MongooseModuleAsyncOptions => {
     UsersModule,
     BlogsModule,
     PostsModule,
+    CommentsModule,
   ],
   controllers: [],
   providers: [],
