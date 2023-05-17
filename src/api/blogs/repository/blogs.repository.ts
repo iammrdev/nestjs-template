@@ -68,11 +68,7 @@ export class BlogsRepository
   public async findById(id: string): Promise<Blog | null> {
     const dbBlog = await this.blogsModel.findOne({ _id: id }).exec();
 
-    if (!dbBlog) {
-      return null;
-    }
-
-    return this.buildBlog(dbBlog);
+    return dbBlog && this.buildBlog(dbBlog);
   }
 
   public async updateById(

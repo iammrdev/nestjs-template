@@ -76,21 +76,13 @@ export class UsersRepository
   public async findById(id: string): Promise<User | null> {
     const dbUser = await this.usersModel.findOne({ _id: id }).exec();
 
-    if (!dbUser) {
-      return null;
-    }
-
-    return this.buildUser(dbUser);
+    return dbUser && this.buildUser(dbUser);
   }
 
   public async findByEmail(email: string): Promise<User | null> {
     const dbUser = await this.usersModel.findOne({ email }).exec();
 
-    if (!dbUser) {
-      return null;
-    }
-
-    return this.buildUser(dbUser);
+    return dbUser && this.buildUser(dbUser);
   }
 
   public async updateById(

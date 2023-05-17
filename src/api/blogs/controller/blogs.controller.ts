@@ -5,24 +5,31 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Inject,
   NotFoundException,
   Param,
   Post,
   Put,
   Query,
+  forwardRef,
 } from '@nestjs/common';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CreateBlogDto,
   GetBlogsQuery,
   UpdateBlogDto,
 } from './blogs.controller.interface';
 import { BlogsService } from '../service/blogs.service';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CreatePostDto, GetPostsQuery, PostsService } from '../../posts';
 
 @ApiTags('blogs')
 @Controller('blogs')
 export class BlogsController {
-  constructor(private readonly blogsService: BlogsService) {}
+  constructor(
+    private readonly blogsService: BlogsService,
+    @Inject(forwardRef(() => PostsService))
+    private readonly postsService: PostsService,
+  ) {}
 
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
   @Post()
@@ -84,5 +91,33 @@ export class BlogsController {
     }
 
     await this.blogsService.deleteBlogById(id);
+  }
+
+  @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
+  @Get(':id/posts')
+  async getPostsByBlog(@Param('id') id: string, @Query() query: GetPostsQuery) {
+    const existedBlog = await this.blogsService.getBlogById(id);
+
+    if (!existedBlog) {
+      throw new NotFoundException('Blog is not found');
+    }
+
+    return this.postsService.getPostsByBlog(id, query);
+  }
+
+  @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
+  @Post(':id/posts')
+  async createPostByBlog(@Param('id') id: string, @Body() dto: CreatePostDto) {
+    const existedBlog = await this.blogsService.getBlogById(id);
+
+    if (!existedBlog) {
+      throw new NotFoundException('Blog is not found');
+    }
+
+    return this.postsService.createPost({
+      ...dto,
+      blogId: id,
+      blogName: existedBlog.name,
+    });
   }
 }
