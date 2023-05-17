@@ -1,0 +1,46 @@
+@baseUrl =  http://localhost:3000
+@token = 
+@id = 
+@paginationParams = pageSize=2&pageNumber=1&searchNameTerm=wblog&sortDirection=asc&sortBy=name
+
+## Create new blog
+POST {{baseUrl}}/blogs HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "My useEffect",
+  "description": "About new react features",
+  "websiteUrl": "https://nestjs-template.vercel.app"
+}
+
+###
+
+## Update blog by id
+PUT {{baseUrl}}/blogs/{{id}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "My memo useEffect",
+  "description": "About new react features",
+  "websiteUrl": "https://nestjs-template.vercel.app"
+}
+
+###
+
+## Get blog by id
+GET {{baseUrl}}/blogs/{{id}} HTTP/1.1
+Content-Type: application/json
+
+###
+
+## Get blog list with pagination
+GET {{baseUrl}}/blogs?{{paginationParams}} HTTP/1.1
+Content-Type: application/json
+
+###
+
+## Delete blog by id
+DELETE {{baseUrl}}/blogs/{{id}} HTTP/1.1
+
+###
+
