@@ -4,7 +4,7 @@ import {
   GetPostsQuery,
   UpdatePostDto,
 } from './posts.service.interface';
-import { Post } from '../../../types/Posts';
+import { Post } from '../../../types/posts';
 import { PostsRepository } from '../repository/posts.repository';
 import { PostsEntity } from './posts.entity';
 import { LikeStatus } from '../../../types/likes';

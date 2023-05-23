@@ -5,6 +5,7 @@ import { UsersModule } from './api/users';
 import { BlogsModule } from './api/blogs';
 import { PostsModule } from './api/posts';
 import { CommentsModule } from './api/comments';
+import { AuthModule } from './api/auth';
 
 const getMongoDbConfig = (): MongooseModuleAsyncOptions => {
   return {
@@ -18,6 +19,7 @@ const getMongoDbConfig = (): MongooseModuleAsyncOptions => {
   imports: [
     MongooseModule.forRootAsync(getMongoDbConfig()),
     TestingModule,
+    AuthModule,
     UsersModule,
     BlogsModule,
     PostsModule,

@@ -23,6 +23,8 @@ export class UsersRepository
       id: dbUser._id.toString(),
       login: dbUser.login,
       email: dbUser.email,
+      passwordHash: dbUser.passwordHash,
+      confirmation: dbUser.confirmation,
       createdAt: dbUser.createdAt,
     };
   }
@@ -46,7 +48,6 @@ export class UsersRepository
   }
 
   public async create(usersEntity: UsersEntity): Promise<User> {
-    console.log({ usersEntity });
     const dbUser = await this.usersModel.create(usersEntity);
 
     return this.buildUser(dbUser);
@@ -82,6 +83,29 @@ export class UsersRepository
 
   public async findByEmail(email: string): Promise<User | null> {
     const dbUser = await this.usersModel.findOne({ email }).exec();
+
+    return dbUser && this.buildUser(dbUser);
+  }
+
+  public async findByLoginOrEmail(
+    loginOrEmail: string | { login: string; email: string },
+  ) {
+    const login =
+      typeof loginOrEmail === 'string' ? loginOrEmail : loginOrEmail.login;
+    const email =
+      typeof loginOrEmail === 'string' ? loginOrEmail : loginOrEmail.email;
+
+    const dbUser = await this.usersModel.findOne({
+      $or: [{ login: RegExp(login, 'i') }, { email: RegExp(email, 'i') }],
+    });
+
+    return dbUser && this.buildUser(dbUser);
+  }
+
+  public async findByConfirmationCode(code: string): Promise<User | null> {
+    const dbUser = await this.usersModel
+      .findOne({ 'confirmation.code': code })
+      .exec();
 
     return dbUser && this.buildUser(dbUser);
   }

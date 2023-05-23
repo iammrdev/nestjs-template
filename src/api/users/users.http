@@ -1,7 +1,7 @@
-@baseUrl =  http://localhost:3000 
+@baseUrl =  http://localhost:5000 
 @token = 
 @id = 
-@paginationParams = pageNumber=1&pageSize=10&sortBy=login
+@paginationParams = 
 
 
 ## Create new user
@@ -9,9 +9,9 @@ POST {{baseUrl}}/users HTTP/1.1
 Content-Type: application/json
 
 {
-  "login": "admin",
-  "password": 123456,
-  "email": "admin@local.io"
+  "login": "admin332e",
+  "password": "123456",
+  "email": "admin332e@local.io"
 }
 
 ###
@@ -23,6 +23,7 @@ Content-Type: application/json
 ###
 
 ## Delete user by id
-DELETE {{baseUrl}}/users/{{id}} HTTP/1.1
+DELETE {{baseUrl}}/users/646d650f4cac3af2bf0baadf HTTP/1.1
+Authorization: Basic YWRtaW46cXdlcnR5
 
 ###

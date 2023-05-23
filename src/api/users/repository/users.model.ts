@@ -1,5 +1,12 @@
-import { Document, Types, now } from 'mongoose';
+import { Document, Schema as MongooseSchema, Types, now } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+
+type Confirmation = {
+  status: boolean;
+  code: string;
+  expiration: Date;
+  activation: Date | null;
+};
 
 export type DataUser = {
   _id: Types.ObjectId;
@@ -7,6 +14,7 @@ export type DataUser = {
   passwordHash: string;
   email: string;
   createdAt: Date;
+  confirmation: Confirmation;
 };
 
 @Schema({ collection: 'users' })
@@ -21,7 +29,10 @@ export class UsersModel extends Document implements Omit<DataUser, '_id'> {
   public passwordHash: string;
 
   @Prop({ default: now() })
-  createdAt: Date;
+  public createdAt: Date;
+
+  @Prop({ type: MongooseSchema.Types.Mixed, required: true })
+  public confirmation: Confirmation;
 }
 
 export const UsersSchema = SchemaFactory.createForClass(UsersModel);

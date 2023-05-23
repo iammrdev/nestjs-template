@@ -1,10 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsIn, IsOptional } from 'class-validator';
+import { IsIn, IsOptional, IsString, Length, Validate } from 'class-validator';
+import {
+  CustomEmailValidator,
+  CustomLoginValidator,
+} from '../../auth/controller/auth.dto';
 
 export class CreateUserDto {
+  @ApiProperty({ required: true })
+  @IsString()
+  @Length(3, 10, { message: 'Invalid login length' })
+  @Validate(CustomLoginValidator, { message: 'Invalid login' })
   public login: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @Length(6, 20, { message: 'Invalid password length' })
   public password: string;
+
+  @ApiProperty({ required: true })
+  @Validate(CustomEmailValidator, { message: 'Invalid email' })
   public email: string;
 }
 

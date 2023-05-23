@@ -12,3 +12,8 @@ export class GetUsersQuery {
   public pageNumber: number;
   public pageSize: number;
 }
+
+export class VeirifyUserDto {
+  public loginOrEmail: string;
+  public password: string;
+}
