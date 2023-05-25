@@ -38,7 +38,7 @@ export class BlogsRepository
   }
 
   public async create(blogsEntity: BlogsEntity): Promise<Blog> {
-    const dbBlog = await this.blogsModel.create(blogsEntity);
+    const dbBlog = await this.blogsModel.create(blogsEntity.toObject());
 
     return this.buildBlog(dbBlog);
   }

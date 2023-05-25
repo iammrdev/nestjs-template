@@ -1,37 +1,38 @@
-@baseUrl =  http://localhost:3000
-@token = 
-@id = 
+@baseUrl =  http://localhost:5000
+
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0N2IzOGUyNGZmYzlhNDY3MjAyODliNCIsImxvZ2luIjoiaWFzaGNodWsyIiwiZW1haWwiOiJpYXNoY2h1azIuZGV2QGhtYWlsLmNvbSIsImlhdCI6MTY4NTc5NzE0MywiZXhwIjoxNjg1ODAwMTQzfQ.nIzmw5n-BE6D_0xVGG2ki5AuFUCmFDmkt_q3nziBuKQ
+
+@id = 64792132c5d6a53ead4c7b2e
+
 @paginationParams = pageSize=2&pageNumber=1&sortDirection=asc
 
 
 ## Create new post
 POST {{baseUrl}}/posts HTTP/1.1
+Authorization: Basic YWRtaW46cXdlcnR5
 Content-Type: application/json
 
-{
-  "title": "New Effect 2023",
-  "shortDescription": "Incredible effect in React",
-  "content": "https://reactjs.ru",
-  "blogId": "6462c879c038853951ca1726"
-}
+{"title":"valid","content":"valid","blogId":"647b39b24ffc9a46720289c1","shortDescription":"lengthYFQOoCIwGnlX5sP3aW3RlaRSQx"}
 
 ###
 
 ## Update post by id
-PUT {{baseUrl}}/posts/{{id}} HTTP/1.1
+PUT {{baseUrl}}/posts/647b39c64ffc9a46720289cc HTTP/1.1
+Authorization: Basic YWRtaW46cXdlcnR5
 Content-Type: application/json
 
 {
-  "name": "My memo useEffect",
-  "description": "About new react features",
-  "websiteUrl": "https://nestjs-template.vercel.app",
-  "blogId": "64613fd7fc2c7049630ecda9"
+  "title": "My memo useEffect",
+  "content": "About new react features",
+  "shortDescription": "https://nestjs-template.vercel.app",
+  "blogId": "647b39b24ffc9a46720289c1"
 }
 
 ###
 
 ## Get post list with pagination
 GET {{baseUrl}}/posts?{{paginationParams}} HTTP/1.1
+Authorization: {{token}}
 Content-Type: application/json
 
 ###
@@ -41,8 +42,30 @@ DELETE {{baseUrl}}/posts/{{id}} HTTP/1.1
 
 ###
 
+## Create new comment
+POST {{baseUrl}}/posts/647a75244ef38ed312330026/comments HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "content": "New Effect 2023. Incredible effect in React 2023"
+}
+
+###
+
 ## Get comments by post
 GET {{baseUrl}}/posts/{{id}}/comments HTTP/1.1
 Content-Type: application/json
+
+###
+
+## Update post like status
+PUT {{baseUrl}}/posts/647b354fccc3b9cdd75e785b/like-status HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+   "likeStatus": "Dislike"
+}
 
 ###

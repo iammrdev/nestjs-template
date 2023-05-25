@@ -18,10 +18,10 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(req, { sub, email }: any): Promise<any> {
-    if (!sub) {
+  async validate(req, { id, login, email }: any): Promise<any> {
+    if (!id) {
       throw new UnauthorizedException('forbidden');
     }
-    return { sub, email, refreshToken: req.cookies.refreshToken };
+    return { id, login, email, refreshToken: req.cookies.refreshToken };
   }
 }

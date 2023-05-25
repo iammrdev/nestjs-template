@@ -2,25 +2,28 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CRUDRepository } from '../../../interfaces/crud-repository.interface';
-import { CommentsModel, DataComment } from './comments.model';
-import { GetCommentsParams } from './comments.repository.interfece';
-import { Comment } from '../../../types/comments';
+import { CommentsModel, CommentRepo } from './comments.model';
+import {
+  CommentData,
+  GetCommentsParams,
+} from './comments.repository.interfece';
 import { CommentsEntity } from '../service/comments.entity';
 import { Pagination } from '../../../core/pagination';
 import { PaginationList } from '../../../types/common';
 
 @Injectable()
 export class CommentsRepository
-  implements CRUDRepository<CommentsEntity, string, Comment>
+  implements CRUDRepository<CommentsEntity, string, CommentData>
 {
   constructor(
     @InjectModel(CommentsModel.name)
     private readonly commentsModel: Model<CommentsModel>,
   ) {}
 
-  private buildComment(dbComment: DataComment) {
+  private buildComment(dbComment: CommentRepo) {
     return {
       id: dbComment._id.toString(),
+      postId: dbComment.postId,
       content: dbComment.content,
       likesInfo: dbComment.likesInfo,
       commentatorInfo: dbComment.commentatorInfo,
@@ -28,18 +31,18 @@ export class CommentsRepository
     };
   }
 
-  public async create(commentEntity: CommentsEntity): Promise<Comment> {
-    const dbComment = await this.commentsModel.create(commentEntity);
+  public async create(commentsEntity: CommentsEntity): Promise<CommentData> {
+    const dbComment = await this.commentsModel.create(commentsEntity.toModel());
 
     return this.buildComment(dbComment);
   }
 
   public async findAll(
     params: GetCommentsParams,
-  ): Promise<PaginationList<Comment[]>> {
+  ): Promise<PaginationList<CommentData[]>> {
     const totalCount = await this.commentsModel.countDocuments().exec();
 
-    const pagination = new Pagination<Comment>({
+    const pagination = new Pagination<CommentData>({
       page: params.pageNumber,
       pageSize: params.pageSize,
       totalCount,
@@ -58,10 +61,10 @@ export class CommentsRepository
   public async findAllByPost(
     postId: string,
     params: GetCommentsParams,
-  ): Promise<PaginationList<Comment[]>> {
+  ): Promise<PaginationList<CommentData[]>> {
     const filter = { postId };
     const totalCount = await this.commentsModel.countDocuments(filter).exec();
-    const pagination = new Pagination<Comment>({
+    const pagination = new Pagination<CommentData>({
       page: params.pageNumber,
       pageSize: params.pageSize,
       totalCount,
@@ -77,7 +80,7 @@ export class CommentsRepository
     return pagination.setItems(dbComments.map(this.buildComment)).toView();
   }
 
-  public async findById(id: string): Promise<Comment | null> {
+  public async findById(id: string): Promise<CommentData | null> {
     const dbComment = await this.commentsModel.findOne({ _id: id }).exec();
 
     return dbComment && this.buildComment(dbComment);
@@ -86,12 +89,16 @@ export class CommentsRepository
   public async updateById(
     id: string,
     commentsEntity: CommentsEntity,
-  ): Promise<Comment | null> {
+  ): Promise<CommentData | null> {
     const dbComment = await this.commentsModel
-      .findByIdAndUpdate(id, commentsEntity.toObject(), { new: true })
+      .findByIdAndUpdate(id, commentsEntity.toModel(), { new: true })
       .exec();
 
-    return dbComment && this.buildComment(dbComment);
+    if (!dbComment) {
+      throw new Error('Comment not updated');
+    }
+
+    return this.buildComment(dbComment);
   }
 
   public async deleteById(id: string): Promise<number> {

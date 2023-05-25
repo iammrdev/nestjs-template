@@ -1,9 +1,38 @@
-@baseUrl =  http://localhost:3000
-@token = 
+@baseUrl =  http://localhost:5000
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDdhNzU2NjRlZjM4ZWQzMTIzMzAwMzIiLCJlbWFpbCI6Imlhc2hjaHVrMi5kZXZAaG1haWwuY29tIiwiaWF0IjoxNjg1NzQ3MDUxLCJleHAiOjE2ODU3NTAwNTF9.B43QhmLOAV-L-IE6Vj47iW2JyaD5HMCTRqfOCL0gDVY
 @id = 
 
 ## Get comment by id
-GET {{baseUrl}}/comments/{{id}} HTTP/1.1
+GET {{baseUrl}}/comments/647a258941a92268a01c11e8 HTTP/1.1
+Authorization: {{token}}
 Content-Type: application/json
+
+###
+
+## Update comment
+PUT {{baseUrl}}/comments/647a258941a92268a01c11e8 HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "content": "New Effect 2023. Incredible effect in React 2023. Cool!"
+}
+
+###
+
+## Delete comment by id
+DELETE {{baseUrl}}/comments/6479d85a7805a9de9f75867d HTTP/1.1
+Authorization: {{token}}
+
+###
+
+## Update comment like status
+PUT {{baseUrl}}/comments/647a752e4ef38ed31233002a/like-status HTTP/1.1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+   "likeStatus": "Dislike"
+}
 
 ###

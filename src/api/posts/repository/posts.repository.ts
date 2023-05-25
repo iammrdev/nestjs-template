@@ -2,23 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CRUDRepository } from '../../../interfaces/crud-repository.interface';
-import { DataPost, PostsModel } from './posts.model';
-import { Post } from '../../../types/posts';
+import { PostRepo, PostsModel } from './posts.model';
 import { PostsEntity } from '../service/posts.entity';
-import { GetPostsParams } from './posts.repository.interfece';
+import { GetPostsParams, PostData } from './posts.repository.interfece';
 import { Pagination } from '../../../core/pagination';
 import { PaginationList } from '../../../types/common';
 
 @Injectable()
 export class PostsRepository
-  implements CRUDRepository<PostsEntity, string, Post>
+  implements CRUDRepository<PostsEntity, string, PostData>
 {
   constructor(
     @InjectModel(PostsModel.name)
     private readonly postsModel: Model<PostsModel>,
   ) {}
 
-  private buildPost(dbPost: DataPost) {
+  private buildPost(dbPost: PostRepo) {
     return {
       id: dbPost._id.toString(),
       title: dbPost.title,
@@ -31,18 +30,18 @@ export class PostsRepository
     };
   }
 
-  public async create(postsEntity: PostsEntity): Promise<Post> {
-    const dbPost = await this.postsModel.create(postsEntity);
+  public async create(postsEntity: PostsEntity): Promise<PostData> {
+    const dbPost = await this.postsModel.create(postsEntity.toModel());
 
     return this.buildPost(dbPost);
   }
 
   public async findAll(
     params: GetPostsParams,
-  ): Promise<PaginationList<Post[]>> {
+  ): Promise<PaginationList<PostData[]>> {
     const totalCount = await this.postsModel.countDocuments().exec();
 
-    const pagination = new Pagination<Post>({
+    const pagination = new Pagination<PostData>({
       page: params.pageNumber,
       pageSize: params.pageSize,
       totalCount,
@@ -65,7 +64,7 @@ export class PostsRepository
     const filter = { blogId };
     const totalCount = await this.postsModel.countDocuments(filter).exec();
 
-    const pagination = new Pagination<Post>({
+    const pagination = new Pagination<PostData>({
       page: params.pageNumber,
       pageSize: params.pageSize,
       totalCount,
@@ -81,7 +80,7 @@ export class PostsRepository
     return pagination.setItems(dbPosts.map(this.buildPost)).toView();
   }
 
-  public async findById(id: string): Promise<Post | null> {
+  public async findById(id: string): Promise<PostData | null> {
     const dbPost = await this.postsModel.findOne({ _id: id }).exec();
 
     return dbPost && this.buildPost(dbPost);
@@ -90,12 +89,16 @@ export class PostsRepository
   public async updateById(
     id: string,
     postsEntity: PostsEntity,
-  ): Promise<Post | null> {
-    const mongoPost = await this.postsModel
-      .findByIdAndUpdate(id, postsEntity.toObject(), { new: true })
+  ): Promise<PostData | null> {
+    const dbPost = await this.postsModel
+      .findByIdAndUpdate(id, postsEntity.toModel(), { new: true })
       .exec();
 
-    return mongoPost && this.buildPost(mongoPost);
+    if (!dbPost) {
+      throw new Error('Post not updated');
+    }
+
+    return this.buildPost(dbPost);
   }
 
   public async deleteById(id: string): Promise<number> {

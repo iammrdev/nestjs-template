@@ -1,15 +1,18 @@
 import { Document, Schema as MongooseSchema, Types, now } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { LikeInfo, LikeStatus } from '../../../types/likes';
 
-type ExtendedLikesInfo = {
-  dislikesCount: number;
-  likesCount: number;
-  myStatus: LikeStatus;
-  newestLikes: LikeInfo[];
+type LikeAction = {
+  addedAt: Date;
+  login: string;
+  userId: string;
 };
 
-export type DataPost = {
+type ExtendedLikesInfo = {
+  dislikes: LikeAction[];
+  likes: LikeAction[];
+};
+
+export type PostRepo = {
   _id: Types.ObjectId;
   title: string;
   shortDescription: string;
@@ -21,7 +24,7 @@ export type DataPost = {
 };
 
 @Schema({ collection: 'posts' })
-export class PostsModel extends Document implements Omit<DataPost, '_id'> {
+export class PostsModel extends Document implements Omit<PostRepo, '_id'> {
   @Prop({ required: true })
   public title: string;
 
@@ -37,7 +40,7 @@ export class PostsModel extends Document implements Omit<DataPost, '_id'> {
   @Prop({ required: true })
   public blogName: string;
 
-  @Prop({ type: MongooseSchema.Types.Map, required: true })
+  @Prop({ type: MongooseSchema.Types.Mixed, required: true })
   public extendedLikesInfo: ExtendedLikesInfo;
 
   @Prop({ default: now() })

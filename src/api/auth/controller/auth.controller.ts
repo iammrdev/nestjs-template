@@ -253,7 +253,8 @@ export class AuthController {
 
     const { accessToken, refreshToken } =
       await this.authService.generateAuthInfo({
-        id: currentUser.sub,
+        id: currentUser.id,
+        login: currentUser.login,
         email: currentUser.email,
       });
 

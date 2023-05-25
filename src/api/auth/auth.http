@@ -1,5 +1,5 @@
 @baseUrl =  http://localhost:5000 
-@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDZiZWQ5Yjc3MWY1YTQzMzE4YzcyYjEiLCJlbWFpbCI6IjIyMWJveEBsaXN0LnJ1IiwiaWF0IjoxNjg0ODc0Mzk1LCJleHAiOjE2ODQ4NzQ2MzV9.St6lgT4vwMid8l7UCYb2G3FtLhUBAJHv7AftfHfVde0
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDdhMjU0ZjQxYTkyMjY4YTAxYzExZGIiLCJlbWFpbCI6Imlhc2hjaHVrLmRldkBobWFpbC5jb20iLCJpYXQiOjE2ODU3NDIyODgsImV4cCI6MTY4NTc0NTI4OH0.CjliGQ3El1iBuliFM6dp2Yxd4zgOzg4SZ9XuXbe1CF0
 
 
 ## Login
@@ -7,7 +7,7 @@ POST {{baseUrl}}/auth/login HTTP/1.1
 Content-Type: application/json
 
 {
-  "loginOrEmail": "admin33@local.io",
+  "loginOrEmail": "iashchuk2",
   "password": "123456"
 }
 
@@ -26,14 +26,14 @@ POST {{baseUrl}}/auth/registration HTTP/1.1
 Content-Type: application/json
 
 {
-  "login": "123456",
-  "password": "length_2",
-  "email": "221box@list.ru"
+  "login": "iashchuk2",
+  "password": "123456",
+  "email": "iashchuk2.dev@hmail.com"
 }
 
 ###
 
-## Create new user
+## Registration Confirmation
 POST {{baseUrl}}/auth/registration-confirmation HTTP/1.1
 Content-Type: application/json
 
@@ -43,7 +43,7 @@ Content-Type: application/json
 
 ### 
 
-## Create new user
+## Registration Email Resending
 POST {{baseUrl}}/auth/registration-email-resending HTTP/1.1
 Content-Type: application/json
 
@@ -53,7 +53,7 @@ Content-Type: application/json
 
 ###
 
-## Create new user
+## Password Recovery
 POST {{baseUrl}}/auth/password-recovery HTTP/1.1
 Content-Type: application/json
 
@@ -63,7 +63,7 @@ Content-Type: application/json
 
 ###
 
-## Create new user
+## New Password
 POST {{baseUrl}}/auth/new-password HTTP/1.1
 Content-Type: application/json
 
@@ -75,14 +75,14 @@ Content-Type: application/json
 ###
 
 
-## Cwreate new userwww
+## Refresh Token
 POST {{baseUrl}}/auth/refresh-token HTTP/1.1
 Content-Type: application/json
 Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDZiZWQ5Yjc3MWY1YTQzMzE4YzcyYjEiLCJlbWFpbCI6IjIyMWJveEBsaXN0LnJ1IiwiaWF0IjoxNjg0ODczNzM4LCJleHAiOjE2ODQ4NzQ0NTh9.eVRT8IVy458viajzhtiSc-EJkzBrLkMiGSrvnBlILVg
 
 ###
 
-## Cwreate new userwww
+## Logout
 POST {{baseUrl}}/auth/logout HTTP/1.1
 Content-Type: application/json
 Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDZiZWQ5Yjc3MWY1YTQzMzE4YzcyYjEiLCJlbWFpbCI6IjIyMWJveEBsaXN0LnJ1IiwiaWF0IjoxNjg0ODc0NTg3LCJleHAiOjE2ODQ4NzUzMDd9.q8MosDWqJXEw4iRcPIzWZHscH7M4SVz3B9BOMVie0sQ

@@ -1,11 +1,9 @@
 import { Document, Schema as MongooseSchema, Types, now } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { LikeStatus } from '../../../types/likes';
 
 type LikesInfo = {
-  dislikesCount: number;
-  likesCount: number;
-  myStatus: LikeStatus;
+  dislikes: string[];
+  likes: string[];
 };
 
 type CommentatorInfo = {
@@ -13,8 +11,9 @@ type CommentatorInfo = {
   userLogin: string;
 };
 
-export type DataComment = {
+export type CommentRepo = {
   _id: Types.ObjectId;
+  postId: string;
   content: string;
   likesInfo: LikesInfo;
   commentatorInfo: CommentatorInfo;
@@ -24,15 +23,18 @@ export type DataComment = {
 @Schema({ collection: 'comments' })
 export class CommentsModel
   extends Document
-  implements Omit<DataComment, '_id'>
+  implements Omit<CommentRepo, '_id'>
 {
+  @Prop({ required: true })
+  public postId: string;
+
   @Prop({ required: true })
   public content: string;
 
-  @Prop({ type: MongooseSchema.Types.Map, required: true })
+  @Prop({ type: MongooseSchema.Types.Mixed, required: true })
   public commentatorInfo: CommentatorInfo;
 
-  @Prop({ type: MongooseSchema.Types.Map, required: true })
+  @Prop({ type: MongooseSchema.Types.Mixed, required: true })
   public likesInfo: LikesInfo;
 
   @Prop({ default: now() })

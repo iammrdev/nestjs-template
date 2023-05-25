@@ -1,3 +1,5 @@
+import { LikeStatus } from '../../../types/likes';
+
 export class CreatePostDto {
   public title: string;
   public shortDescription: string;
@@ -19,4 +21,10 @@ export class GetPostsQuery {
   public sortDirection: 'desc' | 'asc';
   public pageNumber: number;
   public pageSize: number;
+}
+
+export type UserData = { id: string; login: string };
+
+export class UpdatePostLikeStatusDto {
+  public likeStatus: LikeStatus;
 }

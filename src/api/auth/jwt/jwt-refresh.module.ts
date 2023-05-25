@@ -8,7 +8,7 @@ const moduleOptions = async (): Promise<JwtModuleOptions> => {
   return {
     secret: 'secret2',
     signOptions: {
-      expiresIn: '720s',
+      expiresIn: '7200s',
       algorithm: 'HS256',
     },
   };

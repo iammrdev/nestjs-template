@@ -20,6 +20,7 @@ export class BlogsService {
   }
 
   async getBlogById(id: string): Promise<Blog | null> {
+    console.log(id);
     return this.blogsRepository.findById(id);
   }
 

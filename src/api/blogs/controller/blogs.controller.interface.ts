@@ -1,16 +1,70 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsIn, IsOptional } from 'class-validator';
+import {
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Validate,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+} from 'class-validator';
+
+@ValidatorConstraint({ name: 'url', async: false })
+export class CustomUrlValidator implements ValidatorConstraintInterface {
+  validate(url: string) {
+    return /^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/.test(
+      url,
+    );
+  }
+}
 
 export class CreateBlogDto {
+  @ApiProperty({ required: true })
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  @MaxLength(15, { message: 'Invalid name' })
   public name: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  @MaxLength(500, { message: 'Invalid description' })
   public description: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  @MaxLength(100, { message: 'Invalid websiteUrl' })
+  @Validate(CustomUrlValidator, { message: 'Invalid websiteUrl' })
   public websiteUrl: string;
 }
 
 export class UpdateBlogDto {
+  @ApiProperty({ required: true })
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  @MaxLength(15, { message: 'Invalid name' })
   public name: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  @MaxLength(500, { message: 'Invalid description' })
   public description: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  @MaxLength(100, { message: 'Invalid websiteUrl' })
+  @Validate(CustomUrlValidator, { message: 'Invalid websiteUrl' })
   public websiteUrl: string;
 }
 
@@ -37,4 +91,27 @@ export class GetBlogsQuery {
   @Transform(({ value }) => Number(value) || 10)
   @IsOptional()
   public pageSize = 10;
+}
+
+export class CreatePostDto {
+  @ApiProperty({ required: true })
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  @MaxLength(30, { message: 'Invalid title length' })
+  public title: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  @MaxLength(100, { message: 'Invalid shortDescription length' })
+  public shortDescription: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  @MaxLength(1000, { message: 'Invalid content length' })
+  public content: string;
 }

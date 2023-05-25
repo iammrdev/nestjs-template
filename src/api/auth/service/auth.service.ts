@@ -24,7 +24,8 @@ export class AuthService {
   async generateAuthInfo(dto: any) {
     // console.log({ dto });
     const payload = {
-      sub: dto.id,
+      id: dto.id,
+      login: dto.login,
       email: dto.email,
     };
 
@@ -64,7 +65,7 @@ export class AuthService {
   async getUserSessionByToken(token: string): Promise<any> {
     const tokenInfo = await this.getAccessTokenInfo(token);
 
-    return this.tokensRepository.findByUserId(tokenInfo.sub);
+    return this.tokensRepository.findByUserId(tokenInfo.id);
   }
 
   async checkActiveSessions(token?: string): Promise<void> {

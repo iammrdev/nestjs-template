@@ -15,9 +15,7 @@ export class AccessTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate({ sub, email }: any): Promise<any> {
-    console.log({ sub, email });
-
-    return { sub, email };
+  async validate({ id, login, email }: any): Promise<any> {
+    return { id, login, email };
   }
 }
