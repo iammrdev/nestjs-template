@@ -252,11 +252,14 @@ export class AuthController {
     await this.authService.deleteToken(tokenInfo.id);
 
     const { accessToken, refreshToken } =
-      await this.authService.generateAuthInfo({
-        id: currentUser.id,
-        login: currentUser.login,
-        email: currentUser.email,
-      });
+      await this.authService.generateAuthInfo(
+        {
+          id: currentUser.id,
+          login: currentUser.login,
+          email: currentUser.email,
+        },
+        tokenInfo.deviceId,
+      );
 
     response.cookie('refreshToken', refreshToken, {
       secure: process.env.NODE_ENV !== 'development',

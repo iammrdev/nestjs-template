@@ -43,6 +43,18 @@ export class TokensRepository {
     return dbToken && this.buildToken(dbToken);
   }
 
+  public async findByDeviceId(deviceId: string): Promise<Token | null> {
+    const dbToken = await this.tokensModel.findOne({ deviceId }).exec();
+
+    return dbToken && this.buildToken(dbToken);
+  }
+
+  public async findAllByUserId(userId: string): Promise<Token[]> {
+    const dbTokens = await this.tokensModel.find({ userId }).exec();
+
+    return dbTokens.map((dbToken) => this.buildToken(dbToken));
+  }
+
   public async findByToken(refreshToken: string): Promise<Token | null> {
     const dbToken = await this.tokensModel.findOne({ refreshToken }).exec();
 
@@ -62,6 +74,14 @@ export class TokensRepository {
 
   public async deleteById(id: string): Promise<number> {
     return (await this.tokensModel.deleteOne({ _id: id })).deletedCount;
+  }
+
+  public async deleteByUser(userId: string, deviceId: string): Promise<number> {
+    return (
+      await this.tokensModel.deleteMany({
+        $and: [{ userId }, { deviceId: { $ne: deviceId } }],
+      })
+    ).deletedCount;
   }
 
   public async deleteAll(): Promise<number> {

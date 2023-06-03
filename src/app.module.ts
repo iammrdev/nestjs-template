@@ -7,6 +7,7 @@ import { PostsModule } from './api/posts';
 import { CommentsModule } from './api/comments';
 import { AuthModule } from './api/auth';
 import { NextFunction } from 'express';
+import { SecurityModule } from './api/security/security.module';
 
 const getMongoDbConfig = (): MongooseModuleAsyncOptions => {
   return {
@@ -29,6 +30,7 @@ export class SampleMiddleware implements NestMiddleware {
     // JwtAccessModule,
     TestingModule,
     AuthModule,
+    SecurityModule,
     UsersModule,
     BlogsModule,
     PostsModule,

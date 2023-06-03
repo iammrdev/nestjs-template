@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { TokensRepository } from './tokens.repository';
 import { RecoveryRepository } from './recovery.repository';
@@ -21,12 +27,13 @@ export class AuthService {
     return this.jwtRefreshService.decode(token) as any;
   }
 
-  async generateAuthInfo(dto: any) {
+  async generateAuthInfo(dto: any, deviceId?: string) {
     // console.log({ dto });
     const payload = {
       id: dto.id,
       login: dto.login,
       email: dto.email,
+      deviceId: deviceId || uuidv4(),
     };
 
     const accessToken = await this.jwtAccessService.signAsync(payload);
@@ -41,8 +48,8 @@ export class AuthService {
     console.log({ refreshTokenInfo });
 
     const refreshTokenData = {
-      userId: dto.id,
-      deviceId: uuidv4(),
+      userId: payload.id,
+      deviceId: payload.deviceId,
       ip: '1', //req.socket.remoteAddress,
       title: '2', //req.headers['user-agent'],
       iat: new Date(refreshTokenInfo.iat * 1000),
@@ -66,6 +73,43 @@ export class AuthService {
     const tokenInfo = await this.getAccessTokenInfo(token);
 
     return this.tokensRepository.findByUserId(tokenInfo.id);
+  }
+
+  async getUserDevices(token: string): Promise<any> {
+    const tokenInfo = await this.getRefreshTokenInfo(token);
+
+    const tokens = await this.tokensRepository.findAllByUserId(tokenInfo.id);
+
+    return tokens.map((item) => ({
+      ip: item.ip,
+      title: item.title,
+      deviceId: item.deviceId,
+      lastActiveDate: item.iat,
+    }));
+  }
+
+  async terminateDevices(token: string): Promise<any> {
+    const tokenInfo = await this.getRefreshTokenInfo(token);
+
+    await this.tokensRepository.deleteByUser(tokenInfo.id, tokenInfo.deviceId);
+  }
+
+  async terminateDevice(token: string, deviceId: string): Promise<any> {
+    const tokenInfo = await this.getRefreshTokenInfo(token);
+
+    const tokenByDeviceId = await this.tokensRepository.findByDeviceId(
+      deviceId,
+    );
+
+    if (!tokenByDeviceId) {
+      throw new NotFoundException('NotFoundE');
+    }
+
+    if (tokenInfo.id !== tokenByDeviceId?.userId) {
+      throw new ForbiddenException('Forbidden');
+    }
+
+    await this.tokensRepository.deleteById(tokenByDeviceId.id);
   }
 
   async checkActiveSessions(token?: string): Promise<void> {
