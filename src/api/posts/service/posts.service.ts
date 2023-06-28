@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   CreatePostDto,
   GetPostsQuery,
@@ -9,20 +13,25 @@ import {
 import { Post } from '../../../types/posts';
 import { PostsRepository } from '../repository/posts.repository';
 import { PostsEntity } from './posts.entity';
+import { UsersService } from '../../users';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly postsRepository: PostsRepository) {}
+  constructor(
+    private readonly postsRepository: PostsRepository,
+    private readonly usersService: UsersService,
+  ) {}
 
-  async createPost(dto: CreatePostDto): Promise<Post | null> {
+  async createPost(dto: CreatePostDto, user?: UserData): Promise<Post | null> {
     const entity = new PostsEntity({
       ...dto,
       extendedLikesInfo: {
         dislikes: [],
         likes: [],
       },
+      status: 'active',
       createdAt: new Date(),
-    });
+    }).setAuthorId(user?.id);
 
     const { id } = await this.postsRepository.create(entity);
 
@@ -31,11 +40,15 @@ export class PostsService {
 
   async getPosts(query: GetPostsQuery, dto: { user?: UserData }) {
     const posts = await this.postsRepository.findAll(query);
+    const bannedUsersIds = await this.usersService.getUsersBanned();
 
     return {
       ...posts,
       items: posts.items.map((post) =>
-        new PostsEntity(post).setCurrentUser(dto.user).toView(),
+        new PostsEntity(post)
+          .setCurrentUser(dto.user)
+          .setBannedUsersIds(bannedUsersIds)
+          .toView(),
       ),
     };
   }
@@ -50,7 +63,12 @@ export class PostsService {
       return null;
     }
 
-    return new PostsEntity(postData).setCurrentUser(dto?.user).toView();
+    const bannedUsersIds = await this.usersService.getUsersBanned();
+
+    return new PostsEntity(postData)
+      .setCurrentUser(dto?.user)
+      .setBannedUsersIds(bannedUsersIds)
+      .toView();
   }
 
   async getPostsByBlog(
@@ -77,6 +95,10 @@ export class PostsService {
 
     if (!existedPost) {
       throw new NotFoundException('Post is not found');
+    }
+
+    if (user && user.id !== existedPost.authorId) {
+      throw new ForbiddenException('Forbidden action for update post');
     }
 
     const entity = new PostsEntity({
@@ -112,11 +134,15 @@ export class PostsService {
     return entity.toView();
   }
 
-  async deletePostById(id: string): Promise<{ status: 'ok' }> {
+  async deletePostById(id: string, user?: UserData): Promise<{ status: 'ok' }> {
     const existedPost = await this.postsRepository.findById(id);
 
     if (!existedPost) {
       throw new NotFoundException('Post is not found');
+    }
+
+    if (user && user.id !== existedPost.authorId) {
+      throw new ForbiddenException('Forbidden action for delete post');
     }
 
     await this.postsRepository.deleteById(id);

@@ -78,7 +78,6 @@ export class PostsController {
     @CurrentUser() user: AccessTokenUserInfo,
     @Param('id') id: string,
   ) {
-    console.log({ user });
     const existedPost = await this.postsService.getPostById(id, { user });
 
     if (!existedPost) {

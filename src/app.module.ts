@@ -1,13 +1,15 @@
-import { Injectable, Module, NestMiddleware } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MongooseModule, MongooseModuleAsyncOptions } from '@nestjs/mongoose';
 import { TestingModule } from './api/testing';
 import { UsersModule } from './api/users';
 import { BlogsModule } from './api/blogs';
 import { PostsModule } from './api/posts';
 import { CommentsModule } from './api/comments';
-import { AuthModule } from './api/auth';
-import { NextFunction } from 'express';
 import { SecurityModule } from './api/security/security.module';
+import { BloggerModule } from './api/blogger/blogger.module';
+import { SuperAdminModule } from './api/sa/sa.module';
+import { AuthModule } from './api/auth';
+import { CqrsModule } from '@nestjs/cqrs';
 
 const getMongoDbConfig = (): MongooseModuleAsyncOptions => {
   return {
@@ -16,18 +18,10 @@ const getMongoDbConfig = (): MongooseModuleAsyncOptions => {
     }),
   };
 };
-@Injectable()
-export class SampleMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: NextFunction) {
-    console.log('Sample middleware is running...');
-    next();
-  }
-}
 
 @Module({
   imports: [
     MongooseModule.forRootAsync(getMongoDbConfig()),
-    // JwtAccessModule,
     TestingModule,
     AuthModule,
     SecurityModule,
@@ -35,13 +29,11 @@ export class SampleMiddleware implements NestMiddleware {
     BlogsModule,
     PostsModule,
     CommentsModule,
+    BloggerModule,
+    SuperAdminModule,
   ],
   controllers: [],
   exports: [],
   providers: [],
 })
-export class AppModule {
-  // configure(consumer: MiddlewareConsumer) {
-  //   consumer.apply(AuthMiddleware).forRoutes('comments');
-  // }
-}
+export class AppModule {}

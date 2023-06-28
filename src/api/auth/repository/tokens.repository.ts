@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { AnyObject, Model } from 'mongoose';
 import { DataToken, TokensModel } from './tokens.model';
 import { Token } from '../../../types/tokens';
 import { RefreshTokenEntity } from '../service/auth.service.interface';
@@ -76,12 +76,17 @@ export class TokensRepository {
     return (await this.tokensModel.deleteOne({ _id: id })).deletedCount;
   }
 
-  public async deleteByUser(userId: string, deviceId: string): Promise<number> {
-    return (
-      await this.tokensModel.deleteMany({
-        $and: [{ userId }, { deviceId: { $ne: deviceId } }],
-      })
-    ).deletedCount;
+  public async deleteByUser(
+    userId: string,
+    deviceId?: string,
+  ): Promise<number> {
+    const filter: AnyObject[] = [{ userId }];
+
+    if (deviceId) {
+      filter.push({ deviceId: { $ne: deviceId } });
+    }
+
+    return (await this.tokensModel.deleteMany({ $and: filter })).deletedCount;
   }
 
   public async deleteAll(): Promise<number> {

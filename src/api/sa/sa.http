@@ -1,0 +1,56 @@
+@baseUrl =  http://localhost:5000 
+@token = 
+@id = 
+@paginationParams = 
+
+
+## Create new user
+POST {{baseUrl}}/sa/users HTTP/1.1
+Content-Type: application/json
+Authorization: Basic YWRtaW46cXdlcnR5
+
+{
+  "login": "adminX2",
+  "password": "123456",
+  "email": "adminX2@local.io"
+}
+
+###
+
+## Get user list with pagination
+GET {{baseUrl}}/sa/users?{{paginationParams}} HTTP/1.1
+Authorization: Basic YWRtaW46cXdlcnR5
+Content-Type: application/json
+
+###
+
+## Delete user by id
+DELETE {{baseUrl}}/sa/users/646d650f4cac3af2bf0baadf HTTP/1.1
+Authorization: Basic YWRtaW46cXdlcnR5
+
+###
+
+## Ban user
+PUT {{baseUrl}}/sa/users/64a09c88bb8313f1c0e78c31/ban HTTP/1.1
+Content-Type: application/json
+Authorization: Basic YWRtaW46cXdlcnR5
+
+{
+  "isBanned": true,
+  "banReason": "Это бот. В системе запрещено создание блогов ботами."
+}
+
+###
+
+
+## Bind user with blog
+PUT {{baseUrl}}/sa/blogs/1/bind-with-user/2 HTTP/1.1
+Authorization: Basic YWRtaW46cXdlcnR5
+###
+
+## Get blogs
+GET {{baseUrl}}/sa/blogs HTTP/1.1
+Authorization: Basic YWRtaW46cXdlcnR5
+Content-Type: application/json
+
+###

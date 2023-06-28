@@ -11,7 +11,7 @@ import { PostsModule } from '../posts/posts.module';
     MongooseModule.forFeature([{ name: BlogsModel.name, schema: BlogsSchema }]),
     forwardRef(() => PostsModule),
   ],
-  exports: [BlogsService],
+  exports: [BlogsService, BlogsRepository],
   controllers: [BlogsController],
   providers: [BlogsRepository, BlogsService],
 })

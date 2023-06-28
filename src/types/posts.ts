@@ -7,6 +7,7 @@ export type Post = {
   content: string;
   blogId: string;
   blogName: string;
+  authorId?: string;
   createdAt: Date;
   extendedLikesInfo: {
     dislikesCount: number;

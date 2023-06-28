@@ -21,6 +21,8 @@ export type PostRepo = {
   blogName: string;
   createdAt: Date;
   extendedLikesInfo: ExtendedLikesInfo;
+  authorId?: string;
+  status?: 'active' | 'hidden';
 };
 
 @Schema({ collection: 'posts' })
@@ -39,6 +41,12 @@ export class PostsModel extends Document implements Omit<PostRepo, '_id'> {
 
   @Prop({ required: true })
   public blogName: string;
+
+  @Prop()
+  public authorId: string;
+
+  @Prop()
+  public status: 'active' | 'hidden';
 
   @Prop({ type: MongooseSchema.Types.Mixed, required: true })
   public extendedLikesInfo: ExtendedLikesInfo;

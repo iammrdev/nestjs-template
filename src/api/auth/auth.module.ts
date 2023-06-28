@@ -37,7 +37,7 @@ type Attempt = { ip: string; timestamp: number; url: string };
     JwtRefreshModule,
     BasicModule,
   ],
-  exports: [AuthService],
+  exports: [AuthService, TokensRepository],
   controllers: [AuthController],
   providers: [AuthService, TokensRepository, RecoveryRepository],
 })
@@ -72,9 +72,9 @@ export class AuthModule {
 
     await this.cacheManager.set(key, newAttempts, 10000);
 
-    if (newAttempts.length > 5) {
-      return res.sendStatus(HttpStatus.TOO_MANY_REQUESTS);
-    }
+    // if (newAttempts.length > 5) {
+    //   return res.sendStatus(HttpStatus.TOO_MANY_REQUESTS);
+    // }
 
     next();
   }

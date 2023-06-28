@@ -16,7 +16,7 @@ import { JwtAccessModule } from '../../app/auth-jwt-access/jwt-access.module';
     JwtAccessModule,
     UsersModule,
   ],
-  exports: [CommentsService],
+  exports: [CommentsService, CommentsRepository],
   controllers: [CommentsController],
   providers: [CommentsRepository, CommentsService],
 })

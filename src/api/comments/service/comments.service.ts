@@ -12,10 +12,14 @@ import {
 } from './comments.service.interface';
 import { Comment } from '../../../types/comments';
 import { CommentsEntity } from './comments.entity';
+import { UsersService } from '../../users';
 
 @Injectable()
 export class CommentsService {
-  constructor(private readonly commentsRepository: CommentsRepository) {}
+  constructor(
+    private readonly commentsRepository: CommentsRepository,
+    private readonly usersService: UsersService,
+  ) {}
 
   async createCommentByPost(
     postId: string,
@@ -46,11 +50,15 @@ export class CommentsService {
     { userId }: { userId?: string },
   ) {
     const comments = await this.commentsRepository.findAllByPost(postId, query);
+    const bannedUsersIds = await this.usersService.getUsersBanned();
 
     return {
       ...comments,
       items: comments.items.map((comment) =>
-        new CommentsEntity(comment).setCurrentUser(userId).toView(),
+        new CommentsEntity(comment)
+          .setCurrentUser(userId)
+          .setBannedUsersIds(bannedUsersIds)
+          .toView(),
       ),
     };
   }
@@ -65,7 +73,12 @@ export class CommentsService {
       return null;
     }
 
-    return new CommentsEntity(commentData).setCurrentUser(userId).toView();
+    const bannedUsersIds = await this.usersService.getUsersBanned();
+
+    return new CommentsEntity(commentData)
+      .setCurrentUser(userId)
+      .setBannedUsersIds(bannedUsersIds)
+      .toView();
   }
 
   async updateCommentById(

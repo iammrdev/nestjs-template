@@ -17,6 +17,7 @@ export type CommentRepo = {
   content: string;
   likesInfo: LikesInfo;
   commentatorInfo: CommentatorInfo;
+  status: 'active' | 'hidden';
   createdAt: Date;
 };
 
@@ -36,6 +37,9 @@ export class CommentsModel
 
   @Prop({ type: MongooseSchema.Types.Mixed, required: true })
   public likesInfo: LikesInfo;
+
+  @Prop()
+  public status: 'active' | 'hidden';
 
   @Prop({ default: now() })
   createdAt: Date;

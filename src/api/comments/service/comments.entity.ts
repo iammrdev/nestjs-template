@@ -17,6 +17,7 @@ type Props = {
   content: string;
   commentatorInfo: CommentatorInfo;
   likesInfo: LikesInfo;
+  status?: 'active' | 'hidden';
   createdAt?: Date;
 };
 
@@ -28,7 +29,9 @@ export class CommentsEntity {
 
   public id?: string;
   public currentUserId?: string;
+  public status?: 'active' | 'hidden';
   public createdAt?: Date;
+  public bannedUsersIds?: string[];
 
   constructor(props: Props) {
     this.fillEntity(props);
@@ -66,12 +69,28 @@ export class CommentsEntity {
     return this;
   }
 
+  public setBannedUsersIds(bannedUsersIds: string[]) {
+    this.bannedUsersIds = bannedUsersIds;
+
+    if (this.likesInfo) {
+      this.likesInfo.likes = this.likesInfo.likes.filter(
+        (item) => !this.bannedUsersIds?.includes(item),
+      );
+      this.likesInfo.dislikes = this.likesInfo.dislikes.filter(
+        (item) => !this.bannedUsersIds?.includes(item),
+      );
+    }
+
+    return this;
+  }
+
   public fillEntity(props: Props) {
     this.id = props.id;
     this.postId = props.postId;
     this.content = props.content;
     this.commentatorInfo = props.commentatorInfo;
     this.likesInfo = props.likesInfo;
+    this.status = props.status;
     this.createdAt = props.createdAt;
   }
 
@@ -132,6 +151,7 @@ export class CommentsEntity {
       content: this.content,
       commentatorInfo: this.commentatorInfo,
       likesInfo: this.likesInfo,
+      status: this.status,
       createdAt: this.createdAt,
     };
   }

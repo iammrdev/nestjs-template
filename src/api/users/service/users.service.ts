@@ -6,6 +6,7 @@ import {
 import {
   CreateUserDto,
   GetUsersQuery,
+  GetUsersWithBanInfoQuery,
   VeirifyUserDto,
 } from './users.service.interface';
 import { UsersEntity } from './users.entity';
@@ -37,6 +38,11 @@ export class UsersService {
 
     const entity = await new UsersEntity({
       ...dto,
+      banInfo: {
+        isBanned: false,
+        banDate: null,
+        banReason: null,
+      },
       createdAt: new Date(),
     })
       .generateConfirmation()
@@ -59,6 +65,25 @@ export class UsersService {
         createdAt: item.createdAt,
       })),
     };
+  }
+
+  async getUsersWithBanInfo(query: GetUsersWithBanInfoQuery) {
+    const users = await this.usersRepository.findAll(query);
+
+    return {
+      ...users,
+      items: users.items.map((item) => ({
+        id: item.id,
+        login: item.login,
+        email: item.email,
+        createdAt: item.createdAt,
+        banInfo: item.banInfo,
+      })),
+    };
+  }
+
+  async getUsersBanned() {
+    return this.usersRepository.findAllBannedIds();
   }
 
   async getUserById(id: string): Promise<User | null> {
@@ -87,7 +112,7 @@ export class UsersService {
       dto.loginOrEmail,
     );
 
-    if (!existedUser) {
+    if (!existedUser || existedUser.banInfo.isBanned) {
       throw new UnauthorizedException('Unauthorized');
     }
 

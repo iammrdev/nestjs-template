@@ -1,9 +1,15 @@
+type BlogOwnerInfo = {
+  userId: string;
+  userLogin: string;
+};
+
 type Props = {
   name: string;
   description: string;
   websiteUrl: string;
   isMembership?: boolean;
   createdAt?: Date;
+  blogOwnerInfo?: BlogOwnerInfo;
 };
 
 export class BlogsEntity {
@@ -12,6 +18,7 @@ export class BlogsEntity {
   public websiteUrl: string;
   public isMembership: boolean;
   public createdAt?: Date;
+  public blogOwnerInfo?: BlogOwnerInfo;
 
   constructor(props: Props) {
     this.fillEntity(props);
@@ -23,6 +30,13 @@ export class BlogsEntity {
     this.isMembership = props.isMembership || false;
     this.websiteUrl = props.websiteUrl;
     this.createdAt = props.createdAt;
+    this.blogOwnerInfo = props.blogOwnerInfo;
+  }
+
+  public setOwnerInfo(blogOwnerInfo?: BlogOwnerInfo) {
+    this.blogOwnerInfo = blogOwnerInfo;
+
+    return this;
   }
 
   public toObject() {
@@ -32,6 +46,7 @@ export class BlogsEntity {
       isMembership: this.isMembership,
       websiteUrl: this.websiteUrl,
       createdAt: this.createdAt,
+      blogOwnerInfo: this.blogOwnerInfo,
     };
   }
 }

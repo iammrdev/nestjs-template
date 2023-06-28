@@ -16,7 +16,7 @@ import { BlogIdValidator } from './controller/posts.controller.interface';
     CommentsModule,
     UsersModule,
   ],
-  exports: [PostsService],
+  exports: [PostsService, PostsRepository],
   controllers: [PostsController],
   providers: [PostsRepository, PostsService, BlogIdValidator],
 })

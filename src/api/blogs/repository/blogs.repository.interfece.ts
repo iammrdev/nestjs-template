@@ -5,3 +5,5 @@ export class GetBlogsParams {
   public pageNumber: number;
   public pageSize: number;
 }
+
+export type UserData = { id: string; login: string };

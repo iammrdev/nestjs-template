@@ -40,30 +40,10 @@ export class CommentsRepository
   public async findAll(
     params: GetCommentsParams,
   ): Promise<PaginationList<CommentData[]>> {
-    const totalCount = await this.commentsModel.countDocuments().exec();
+    const filter = { status: { $ne: 'hidden' } };
 
-    const pagination = new Pagination<CommentData>({
-      page: params.pageNumber,
-      pageSize: params.pageSize,
-      totalCount,
-    });
-
-    const dbComments = await this.commentsModel
-      .find()
-      .sort({ [params.sortBy]: params.sortDirection })
-      .skip(pagination.skip)
-      .limit(pagination.pageSize)
-      .exec();
-
-    return pagination.setItems(dbComments.map(this.buildComment)).toView();
-  }
-
-  public async findAllByPost(
-    postId: string,
-    params: GetCommentsParams,
-  ): Promise<PaginationList<CommentData[]>> {
-    const filter = { postId };
     const totalCount = await this.commentsModel.countDocuments(filter).exec();
+
     const pagination = new Pagination<CommentData>({
       page: params.pageNumber,
       pageSize: params.pageSize,
@@ -80,8 +60,34 @@ export class CommentsRepository
     return pagination.setItems(dbComments.map(this.buildComment)).toView();
   }
 
+  public async findAllByPost(
+    postId: string,
+    params: GetCommentsParams,
+  ): Promise<PaginationList<CommentData[]>> {
+    const filter = [{ postId }, { status: { $ne: 'hidden' } }];
+    const totalCount = await this.commentsModel
+      .countDocuments({ $and: filter })
+      .exec();
+    const pagination = new Pagination<CommentData>({
+      page: params.pageNumber,
+      pageSize: params.pageSize,
+      totalCount,
+    });
+
+    const dbComments = await this.commentsModel
+      .find({ $and: filter })
+      .sort({ [params.sortBy]: params.sortDirection })
+      .skip(pagination.skip)
+      .limit(pagination.pageSize)
+      .exec();
+
+    return pagination.setItems(dbComments.map(this.buildComment)).toView();
+  }
+
   public async findById(id: string): Promise<CommentData | null> {
-    const dbComment = await this.commentsModel.findOne({ _id: id }).exec();
+    const filter = [{ _id: id }, { status: { $ne: 'hidden' } }];
+
+    const dbComment = await this.commentsModel.findOne({ $and: filter }).exec();
 
     return dbComment && this.buildComment(dbComment);
   }
@@ -99,6 +105,15 @@ export class CommentsRepository
     }
 
     return this.buildComment(dbComment);
+  }
+
+  public async updateStatusByAuthorId(
+    authorId: string,
+    status: 'active' | 'hidden',
+  ): Promise<void> {
+    await this.commentsModel
+      .updateMany({ 'commentatorInfo.userId': authorId }, { status })
+      .exec();
   }
 
   public async deleteById(id: string): Promise<number> {

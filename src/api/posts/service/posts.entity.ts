@@ -20,7 +20,9 @@ type Props = {
   blogName: string;
   content: string;
   extendedLikesInfo: ExtendedLikesInfo;
+  status?: 'active' | 'hidden';
   id?: string;
+  authorId?: string;
   createdAt?: Date;
 };
 
@@ -33,11 +35,14 @@ export class PostsEntity {
   public extendedLikesInfo: ExtendedLikesInfo;
 
   public id?: string;
+  public authorId?: string;
+  public status?: 'active' | 'hidden';
   public currentUser?: {
     id: string;
     login: string;
   };
   public createdAt?: Date;
+  public bannedUsersIds?: string[];
 
   constructor(props: Props) {
     this.fillEntity(props);
@@ -73,8 +78,29 @@ export class PostsEntity {
     return this;
   }
 
+  public setAuthorId(userId?: string) {
+    this.authorId = userId;
+
+    return this;
+  }
+
   public setCurrentUser(user?: { id: string; login: string }) {
     this.currentUser = user;
+
+    return this;
+  }
+
+  public setBannedUsersIds(bannedUsersIds: string[]) {
+    this.bannedUsersIds = bannedUsersIds;
+
+    if (this.extendedLikesInfo) {
+      this.extendedLikesInfo.likes = this.extendedLikesInfo.likes.filter(
+        (item) => !this.bannedUsersIds?.includes(item.userId),
+      );
+      this.extendedLikesInfo.dislikes = this.extendedLikesInfo.dislikes.filter(
+        (item) => !this.bannedUsersIds?.includes(item.userId),
+      );
+    }
 
     return this;
   }
@@ -88,6 +114,7 @@ export class PostsEntity {
     this.content = props.content;
     this.extendedLikesInfo = props.extendedLikesInfo;
     this.createdAt = props.createdAt;
+    this.status = props.status;
   }
 
   public setLikeStatus(likeStatus: LikeStatus) {
@@ -161,7 +188,9 @@ export class PostsEntity {
       blogName: this.blogName,
       content: this.content,
       extendedLikesInfo: this.extendedLikesInfo,
+      authorId: this.authorId,
       createdAt: this.createdAt,
+      status: this.status,
     };
   }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { AnyObject, Model } from 'mongoose';
 import { CRUDRepository } from '../../../interfaces/crud-repository.interface';
 import { UsersEntity } from '../service/users.entity';
 import { User } from '../../../types/users';
@@ -25,16 +25,15 @@ export class UsersRepository
       email: dbUser.email,
       passwordHash: dbUser.passwordHash,
       confirmation: dbUser.confirmation,
+      banInfo: dbUser.banInfo,
       createdAt: dbUser.createdAt,
     };
   }
 
   private getPaginationFilter(params: GetUsersParams) {
-    if (!params.searchLoginTerm && !params.searchEmailTerm) {
-      return {};
-    }
+    const filter = {};
 
-    const $or: { [key: string]: RegExp }[] = [];
+    const $or: AnyObject[] = [];
 
     if (params.searchLoginTerm) {
       $or.push({ login: RegExp(params.searchLoginTerm, 'i') });
@@ -44,7 +43,17 @@ export class UsersRepository
       $or.push({ email: RegExp(params.searchEmailTerm, 'i') });
     }
 
-    return { $or };
+    if (params.banStatus && params.banStatus !== 'all') {
+      Object.assign(filter, {
+        'banInfo.isBanned': params.banStatus === 'banned',
+      });
+    }
+
+    if (params.searchLoginTerm || params.searchEmailTerm) {
+      return Object.assign(filter, { $or });
+    }
+
+    return filter;
   }
 
   public async create(usersEntity: UsersEntity): Promise<User> {
@@ -57,6 +66,7 @@ export class UsersRepository
     params: GetUsersParams,
   ): Promise<PaginationList<User[]>> {
     const filter = this.getPaginationFilter(params);
+    console.log({ params, filter });
     const totalCount = await this.usersModel.countDocuments(filter).exec();
 
     const pagination = new Pagination<User>({
@@ -73,6 +83,14 @@ export class UsersRepository
       .exec();
 
     return pagination.setItems(dbUsers.map(this.buildUser)).toView();
+  }
+
+  public async findAllBannedIds(): Promise<string[]> {
+    const dbUsers = await this.usersModel
+      .find({ 'banInfo.isBanned': true })
+      .exec();
+
+    return dbUsers.map((item) => item._id.toString());
   }
 
   public async findById(id: string): Promise<User | null> {

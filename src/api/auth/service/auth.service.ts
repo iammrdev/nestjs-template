@@ -81,6 +81,10 @@ export class AuthService {
     await this.tokensRepository.deleteByUser(tokenInfo.id, tokenInfo.deviceId);
   }
 
+  async terminateDevicesByUserId(userId: string): Promise<void> {
+    await this.tokensRepository.deleteByUser(userId);
+  }
+
   async terminateDevice(token: string, deviceId: string): Promise<void> {
     const tokenInfo = await this.getRefreshTokenInfo(token);
 

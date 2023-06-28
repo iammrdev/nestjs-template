@@ -11,10 +11,18 @@ type Confirmation = {
   activation: Date | null;
 };
 
+type BanInfo = {
+  isBanned: boolean;
+  banDate: Date | null;
+  banReason: string | null;
+};
+
 type Props = {
   login: string;
   email: string;
   createdAt: Date;
+  banInfo: BanInfo;
+
   id?: string;
   confirmation?: Confirmation;
   passwordHash?: string;
@@ -24,6 +32,7 @@ export class UsersEntity {
   public login: string;
   public email: string;
   public createdAt: Date;
+  public banInfo: BanInfo;
 
   public id?: string;
   public confirmation?: Confirmation;
@@ -75,11 +84,22 @@ export class UsersEntity {
     return this;
   }
 
+  public handleBan(newBanInfo: Omit<BanInfo, 'banDate'>) {
+    this.banInfo = {
+      isBanned: newBanInfo.isBanned,
+      banReason: newBanInfo.isBanned ? newBanInfo.banReason : null,
+      banDate: newBanInfo.isBanned ? new Date() : null,
+    };
+
+    return this;
+  }
+
   public fillEntity(props: Props) {
     this.id = props.id;
     this.login = props.login;
     this.email = props.email;
     this.createdAt = props.createdAt;
+    this.banInfo = props.banInfo;
     this.confirmation = props.confirmation;
     this.passwordHash = props.passwordHash;
   }
@@ -91,6 +111,7 @@ export class UsersEntity {
       createdAt: this.createdAt,
       confirmation: this.confirmation,
       passwordHash: this.passwordHash,
+      banInfo: this.banInfo,
     };
   }
 
@@ -105,6 +126,7 @@ export class UsersEntity {
       email: this.email,
       createdAt: this.createdAt,
       confirmation: this.confirmation,
+      banInfo: this.banInfo,
     };
   }
 }

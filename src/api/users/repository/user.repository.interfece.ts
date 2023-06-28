@@ -5,4 +5,5 @@ export class GetUsersParams {
   public sortDirection: 'desc' | 'asc';
   public pageNumber: number;
   public pageSize: number;
+  public banStatus?: 'all' | 'banned' | 'notBanned';
 }

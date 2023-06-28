@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CreateBlogDto, GetBlogsQuery } from './blogs.service.interface';
+import {
+  CreateBlogDto,
+  GetBlogsQuery,
+  UserData,
+} from './blogs.service.interface';
 import { Blog } from '../../../types/blogs';
 import { BlogsRepository } from '../repository/blogs.repository';
 import { BlogsEntity } from './blogs.entity';
@@ -9,8 +13,11 @@ import { UpdateBlogDto } from '../controller/blogs.controller.interface';
 export class BlogsService {
   constructor(private readonly blogsRepository: BlogsRepository) {}
 
-  async createBlog(dto: CreateBlogDto): Promise<Blog> {
-    const entity = new BlogsEntity({ ...dto, createdAt: new Date() });
+  async createBlog(dto: CreateBlogDto, user?: UserData): Promise<Blog> {
+    const entity = new BlogsEntity({
+      ...dto,
+      createdAt: new Date(),
+    }).setOwnerInfo(user && { userId: user?.id, userLogin: user?.login });
 
     return this.blogsRepository.create(entity);
   }
@@ -19,9 +26,20 @@ export class BlogsService {
     return this.blogsRepository.findAll(query);
   }
 
+  async getBlogsByOwner(user: UserData, query: GetBlogsQuery) {
+    return this.blogsRepository.findAllByUser(user, query);
+  }
+
+  async getBlogsWithOwnerInfo(query: GetBlogsQuery) {
+    return this.blogsRepository.findAllWithOwnerInfo(query);
+  }
+
   async getBlogById(id: string): Promise<Blog | null> {
-    console.log(id);
     return this.blogsRepository.findById(id);
+  }
+
+  async getBlogByIdWithOwnerInfo(id: string): Promise<Blog | null> {
+    return this.blogsRepository.findByIdWithOwnerInfo(id);
   }
 
   async updateBlog(id: string, dto: UpdateBlogDto): Promise<Blog | null> {

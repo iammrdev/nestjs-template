@@ -1,0 +1,63 @@
+@baseUrl =  http://localhost:5000
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0YTE4MDVhMWJhNTNkYTM3ODM3ZTIzZCIsImxvZ2luIjoiaWFzaGNodWsyIiwiZW1haWwiOiJpYXNoY2h1azIuZGV2QGhtYWlsLmNvbSIsImRldmljZUlkIjoiZmQ0OTJkNTUtNTRkMy00MmM2LTllM2ItOGM3ZTk1NTViYzE1IiwiaWF0IjoxNjg4MzA1Nzg1LCJleHAiOjE2ODgzMDYxNDV9.jnOYdZ56-hvoGQvEkPIqHXXMigfpyYT414U_0U6UJQ8
+
+@id = 
+
+@paginationParams = pageSize=2&pageNumber=1&searchNameTerm=wblog&sortDirection=asc&sortBy=name
+
+## Create new blog
+POST {{baseUrl}}/blogger/blogs HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "name": "My memo",
+  "description": "About new react features",
+  "websiteUrl": "https://nestjs-template.vercel.app"
+  }
+
+###
+
+## Update blog by id
+PUT {{baseUrl}}/blogger/blogs/64a1806a1ba53da37837e242 HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "name": "My memo 2",
+  "description": "About new react features",
+  "websiteUrl": "https://nestjs-template.vercel.app"
+}
+
+###
+
+## Get blog list with pagination
+GET {{baseUrl}}/blogs?{{paginationParams}} HTTP/1.1
+Content-Type: application/json
+
+###
+
+## Delete blog by id
+DELETE {{baseUrl}}/blogs/{{id}} HTTP/1.1
+
+###
+
+## Get post list by blog
+GET {{baseUrl}}/blogs/{{id}}/posts HTTP/1.1
+Content-Type: application/json
+
+###
+
+## Create post by blog
+
+POST {{baseUrl}}/blogger/blogs/646ffb8023a4fd17363a758b/posts HTTP/1.1
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "title": "New Effect 2023",
+  "shortDescription": "Incredible effect in React",
+  "content": "https://reactjs.ru"
+}
+
+###

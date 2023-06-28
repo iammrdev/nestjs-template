@@ -14,6 +14,8 @@ export type PostData = {
   content: string;
   blogId: string;
   blogName: string;
+  authorId?: string;
+  status?: 'active' | 'hidden';
   createdAt: Date;
   extendedLikesInfo: PostRepo['extendedLikesInfo'];
 };

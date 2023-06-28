@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { AnyObject, Model } from 'mongoose';
 import { CRUDRepository } from '../../../interfaces/crud-repository.interface';
 import { PostRepo, PostsModel } from './posts.model';
 import { PostsEntity } from '../service/posts.entity';
@@ -26,6 +26,7 @@ export class PostsRepository
       blogId: dbPost.blogId,
       blogName: dbPost.blogName,
       extendedLikesInfo: dbPost.extendedLikesInfo,
+      authorId: dbPost.authorId,
       createdAt: dbPost.createdAt,
     };
   }
@@ -40,7 +41,15 @@ export class PostsRepository
     params: GetPostsParams,
     filter?: { blogId: string },
   ): Promise<PaginationList<PostData[]>> {
-    const totalCount = await this.postsModel.countDocuments(filter).exec();
+    const complexFilter: AnyObject[] = [{ status: { $ne: 'hidden' } }];
+
+    if (filter) {
+      complexFilter.push(filter);
+    }
+
+    const totalCount = await this.postsModel
+      .countDocuments({ $and: complexFilter })
+      .exec();
 
     const pagination = new Pagination<PostData>({
       page: params.pageNumber,
@@ -49,7 +58,7 @@ export class PostsRepository
     });
 
     const dbPosts = await this.postsModel
-      .find(filter || {})
+      .find({ $and: complexFilter })
       .sort({ [params.sortBy]: params.sortDirection })
       .skip(pagination.skip)
       .limit(pagination.pageSize)
@@ -66,7 +75,9 @@ export class PostsRepository
   }
 
   public async findById(id: string): Promise<PostData | null> {
-    const dbPost = await this.postsModel.findOne({ _id: id }).exec();
+    const filter: AnyObject[] = [{ _id: id }, { status: { $ne: 'hidden' } }];
+
+    const dbPost = await this.postsModel.findOne({ $and: filter }).exec();
 
     return dbPost && this.buildPost(dbPost);
   }
@@ -84,6 +95,13 @@ export class PostsRepository
     }
 
     return this.buildPost(dbPost);
+  }
+
+  public async updateStatusByAuthorId(
+    authorId: string,
+    status: 'active' | 'hidden',
+  ): Promise<void> {
+    await this.postsModel.updateMany({ authorId }, { status }).exec();
   }
 
   public async deleteById(id: string): Promise<number> {
