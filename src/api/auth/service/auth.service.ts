@@ -6,9 +6,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { TokensRepository } from './tokens.repository';
-import { RecoveryRepository } from './recovery.repository';
 import { v4 as uuidv4 } from 'uuid';
+import add from 'date-fns/add';
+import { TokensRepository } from '../repository/tokens.repository';
+import { RecoveryRepository } from '../repository/recovery.repository';
+import { JWTPayload, JWTPayloadInfo } from '../../../types/auth';
+import {
+  CreateRecoveryDto,
+  GenerateTokenDto,
+  RecoveryEntity,
+  RefreshTokenEntity,
+} from './auth.service.interface';
+import { Token } from '../../../types/tokens';
 
 @Injectable()
 export class AuthService {
@@ -20,81 +29,59 @@ export class AuthService {
   ) {}
 
   private async getAccessTokenInfo(token: string) {
-    return this.jwtAccessService.decode(token) as any;
+    return this.jwtAccessService.decode(token) as JWTPayloadInfo;
   }
 
   private async getRefreshTokenInfo(token: string) {
-    return this.jwtRefreshService.decode(token) as any;
+    return this.jwtRefreshService.decode(token) as JWTPayloadInfo;
   }
 
-  async generateAuthInfo(dto: any, deviceId?: string) {
-    // console.log({ dto });
-    const payload = {
-      id: dto.id,
+  async generateAuthInfo(dto: GenerateTokenDto) {
+    const payload: JWTPayload = {
+      id: dto.userId,
       login: dto.login,
       email: dto.email,
-      deviceId: deviceId || uuidv4(),
+      deviceId: dto.deviceId || uuidv4(),
     };
 
     const accessToken = await this.jwtAccessService.signAsync(payload);
     const refreshToken = await this.jwtRefreshService.signAsync(payload);
-
     const refreshTokenInfo = await this.getRefreshTokenInfo(refreshToken);
-    // const refreshTokenEntity = new TokensEntity({
-    //   userId: dto.id,
-    //   exp: new Date(refreshTokenInfo.exp * 1000),
-    // });
 
-    console.log({ refreshTokenInfo });
-
-    const refreshTokenData = {
+    const refreshTokenEntity: RefreshTokenEntity = {
       userId: payload.id,
       deviceId: payload.deviceId,
-      ip: '1', //req.socket.remoteAddress,
-      title: '2', //req.headers['user-agent'],
+      ip: dto.ip,
+      title: dto.title,
       iat: new Date(refreshTokenInfo.iat * 1000),
       exp: new Date(refreshTokenInfo.exp * 1000),
       refreshToken,
     };
 
-    console.log({ refreshTokenData });
+    await this.tokensRepository.create(refreshTokenEntity);
 
-    // await refreshTokenEntity.setToken(refreshToken);
-
-    await this.tokensRepository.create(refreshTokenData);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return { accessToken, refreshToken };
   }
 
-  async getUserSessionByToken(token: string): Promise<any> {
+  async getUserSessionByToken(token: string): Promise<Token | null> {
     const tokenInfo = await this.getAccessTokenInfo(token);
 
     return this.tokensRepository.findByUserId(tokenInfo.id);
   }
 
-  async getUserDevices(token: string): Promise<any> {
+  async getUserDevices(token: string): Promise<Token[]> {
     const tokenInfo = await this.getRefreshTokenInfo(token);
 
-    const tokens = await this.tokensRepository.findAllByUserId(tokenInfo.id);
-
-    return tokens.map((item) => ({
-      ip: item.ip,
-      title: item.title,
-      deviceId: item.deviceId,
-      lastActiveDate: item.iat,
-    }));
+    return this.tokensRepository.findAllByUserId(tokenInfo.id);
   }
 
-  async terminateDevices(token: string): Promise<any> {
+  async terminateDevices(token: string): Promise<void> {
     const tokenInfo = await this.getRefreshTokenInfo(token);
 
     await this.tokensRepository.deleteByUser(tokenInfo.id, tokenInfo.deviceId);
   }
 
-  async terminateDevice(token: string, deviceId: string): Promise<any> {
+  async terminateDevice(token: string, deviceId: string): Promise<void> {
     const tokenInfo = await this.getRefreshTokenInfo(token);
 
     const tokenByDeviceId = await this.tokensRepository.findByDeviceId(
@@ -125,16 +112,26 @@ export class AuthService {
     }
   }
 
-  async getRefreshToken(token: string): Promise<any> {
+  async getRefreshToken(token: string): Promise<Token | null> {
     return this.tokensRepository.findByToken(token);
   }
 
-  async deleteToken(token: string): Promise<any> {
+  async deleteToken(token: string): Promise<void> {
     await this.tokensRepository.deleteById(token);
   }
 
-  async createRecovery(dto: any) {
-    await this.recoveryRepository.create(dto);
+  async createRecovery(dto: CreateRecoveryDto) {
+    const recovery: RecoveryEntity = {
+      userId: dto.userId,
+      deviceId: uuidv4(),
+      ip: dto.ip,
+      title: dto.title,
+      code: uuidv4(),
+      iat: new Date(),
+      exp: add(new Date(), { minutes: 60 }),
+    };
+
+    return this.recoveryRepository.create(recovery);
   }
 
   async getRecovery(code: string) {

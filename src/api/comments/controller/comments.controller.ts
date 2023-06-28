@@ -12,14 +12,14 @@ import {
 } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CommentsService } from '../service/comments.service';
-import { JwtAccessTokenGuard } from '../../auth/jwt/jwt-access-token.guard';
-import { CurrentUserId } from '../../auth/jwt/current-user.pipe';
+import { JwtAccessTokenGuard } from '../../../app/auth-jwt-access/jwt-access-token.guard';
+import { CurrentUserId } from '../../../core/pipes/current-user-id.pipe';
 import {
   UpdateCommentDto,
   UpdateCommentLikeStatusDto,
 } from './comments.controller.interface';
 import { UsersService } from '../../users';
-import { JwtAccessTokenInfo } from '../../auth/jwt/jwt-access-token.info';
+import { JwtAccessTokenInfo } from '../../../app/auth-jwt-access/jwt-access-token.info';
 
 @ApiTags('comments')
 @Controller('comments')

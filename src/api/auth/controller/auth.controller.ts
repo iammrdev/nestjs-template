@@ -13,8 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { v4 as uuidv4 } from 'uuid';
-import add from 'date-fns/add';
+import isAfter from 'date-fns/isAfter';
 import { AuthService } from '../service/auth.service';
 import {
   LoginDto,
@@ -26,13 +25,15 @@ import {
 } from './auth.dto';
 import { UsersService } from '../../../api/users';
 import { Response, Request } from 'express';
-import { JwtAccessTokenGuard } from '../jwt/jwt-access-token.guard';
-import { CurrentUser, CurrentUserId } from '../jwt/current-user.pipe';
-import { Expose } from 'class-transformer';
+import { JwtAccessTokenGuard } from '../../../app/auth-jwt-access/jwt-access-token.guard';
+import { CurrentUser } from '../../../core/pipes/current-user.pipe';
+import { CurrentUserId } from '../../../core/pipes/current-user-id.pipe';
 import { buildObject } from '../../../core/buildObject';
-import { EmailService } from '../../../services/emails/email.service';
-import isAfter from 'date-fns/isAfter';
-import { JwtRefreshTokenGuard } from '../jwt/jwt-refresh-token.guard';
+import { EmailService } from '../../../app/emails/email.service';
+
+import { JwtRefreshTokenGuard } from '../../../app/auth-jwt-refresh/jwt-refresh-token.guard';
+import { AuthMeRdo } from './auth.rdo';
+import { RefreshTokenUserInfo } from '../../../app/auth-jwt-refresh/jwt-refresh-token.strategy';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -46,13 +47,19 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
+    @Req() req: Request,
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
     const verifiedUser = await this.usersService.verifyUser(dto);
 
     const { accessToken, refreshToken } =
-      await this.authService.generateAuthInfo(verifiedUser);
+      await this.authService.generateAuthInfo({
+        ...verifiedUser,
+        userId: verifiedUser.id,
+        ip: req.socket.remoteAddress || '0.0.0.0',
+        title: req.headers['user-agent'] || 'none',
+      });
 
     response.cookie('refreshToken', refreshToken, {
       secure: process.env.NODE_ENV !== 'development',
@@ -85,12 +92,7 @@ export class AuthController {
 
     if (!user || user.confirmation.status) {
       throw new BadRequestException({
-        errorsMessages: [
-          {
-            message: 'Invalid email',
-            field: 'email',
-          },
-        ],
+        errorsMessages: [{ message: 'Invalid email', field: 'email' }],
       });
     }
 
@@ -98,16 +100,9 @@ export class AuthController {
 
     if (!newUser) {
       throw new BadRequestException({
-        errorsMessages: [
-          {
-            message: 'Invalid email 2',
-            field: 'email',
-          },
-        ],
+        errorsMessages: [{ message: 'Invalid email', field: 'email' }],
       });
     }
-
-    console.log({ newUser });
 
     const info = await EmailService.sendEmail({
       email: newUser.email,
@@ -127,12 +122,7 @@ export class AuthController {
 
     if (!user) {
       throw new BadRequestException({
-        errorsMessages: [
-          {
-            message: 'Invalid code',
-            field: 'code',
-          },
-        ],
+        errorsMessages: [{ message: 'Invalid code', field: 'code' }],
       });
     }
 
@@ -144,12 +134,7 @@ export class AuthController {
       user.confirmation.status
     ) {
       throw new BadRequestException({
-        errorsMessages: [
-          {
-            message: 'Invalid code 2',
-            field: 'code',
-          },
-        ],
+        errorsMessages: [{ message: 'Invalid code', field: 'code' }],
       });
     }
 
@@ -158,10 +143,10 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAccessTokenGuard)
-  public async updateUserData(@CurrentUserId() currentUser: any) {
-    const user = await this.usersService.getUserById(currentUser);
+  public async updateUserData(@CurrentUserId() currentUserId: string) {
+    const user = await this.usersService.getUserById(currentUserId);
 
-    return buildObject(UserRdo, user);
+    return buildObject(AuthMeRdo, user);
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No content' })
@@ -177,17 +162,11 @@ export class AuthController {
       return;
     }
 
-    const recovery = {
+    const recovery = await this.authService.createRecovery({
       userId: user.id,
-      deviceId: uuidv4(),
-      ip: req.socket.remoteAddress,
-      title: req.headers['user-agent'],
-      code: uuidv4(),
-      iat: new Date(),
-      exp: add(new Date(), { minutes: 60 }),
-    };
-
-    await this.authService.createRecovery(recovery);
+      ip: req.socket.remoteAddress || '0.0.0.0',
+      title: req.headers['user-agent'] || 'none',
+    });
 
     const info = await EmailService.sendRecoveryEmail({
       email: user.email,
@@ -221,7 +200,7 @@ export class AuthController {
   @Post('logout')
   @UseGuards(JwtRefreshTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async logout(@CurrentUser() currentUser: any) {
+  public async logout(@CurrentUser() currentUser: RefreshTokenUserInfo) {
     const tokenInfo = await this.authService.getRefreshToken(
       currentUser.refreshToken,
     );
@@ -238,7 +217,8 @@ export class AuthController {
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
   async refreshToken(
-    @CurrentUser() currentUser: any,
+    @Req() req: Request,
+    @CurrentUser() currentUser: RefreshTokenUserInfo,
     @Res({ passthrough: true }) response: Response,
   ) {
     const tokenInfo = await this.authService.getRefreshToken(
@@ -252,14 +232,14 @@ export class AuthController {
     await this.authService.deleteToken(tokenInfo.id);
 
     const { accessToken, refreshToken } =
-      await this.authService.generateAuthInfo(
-        {
-          id: currentUser.id,
-          login: currentUser.login,
-          email: currentUser.email,
-        },
-        tokenInfo.deviceId,
-      );
+      await this.authService.generateAuthInfo({
+        userId: currentUser.id,
+        login: currentUser.login,
+        email: currentUser.email,
+        deviceId: tokenInfo.deviceId,
+        ip: req.socket.remoteAddress || '0.0.0.0',
+        title: req.headers['user-agent'] || 'none',
+      });
 
     response.cookie('refreshToken', refreshToken, {
       secure: process.env.NODE_ENV !== 'development',
@@ -268,15 +248,4 @@ export class AuthController {
 
     return { accessToken };
   }
-}
-
-export class UserRdo {
-  @Expose()
-  public email: string;
-
-  @Expose()
-  public login: string;
-
-  @Expose({ name: 'id' })
-  public userId: number;
 }

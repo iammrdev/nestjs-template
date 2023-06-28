@@ -38,8 +38,9 @@ export class PostsRepository
 
   public async findAll(
     params: GetPostsParams,
+    filter?: { blogId: string },
   ): Promise<PaginationList<PostData[]>> {
-    const totalCount = await this.postsModel.countDocuments().exec();
+    const totalCount = await this.postsModel.countDocuments(filter).exec();
 
     const pagination = new Pagination<PostData>({
       page: params.pageNumber,
@@ -48,7 +49,7 @@ export class PostsRepository
     });
 
     const dbPosts = await this.postsModel
-      .find()
+      .find(filter || {})
       .sort({ [params.sortBy]: params.sortDirection })
       .skip(pagination.skip)
       .limit(pagination.pageSize)
@@ -60,24 +61,8 @@ export class PostsRepository
   public async findAllByBlog(
     blogId: string,
     params: GetPostsParams,
-  ): Promise<any> {
-    const filter = { blogId };
-    const totalCount = await this.postsModel.countDocuments(filter).exec();
-
-    const pagination = new Pagination<PostData>({
-      page: params.pageNumber,
-      pageSize: params.pageSize,
-      totalCount,
-    });
-
-    const dbPosts = await this.postsModel
-      .find(filter)
-      .sort({ [params.sortBy]: params.sortDirection })
-      .skip(pagination.skip)
-      .limit(pagination.pageSize)
-      .exec();
-
-    return pagination.setItems(dbPosts.map(this.buildPost)).toView();
+  ): Promise<PaginationList<PostData[]>> {
+    return this.findAll(params, { blogId });
   }
 
   public async findById(id: string): Promise<PostData | null> {

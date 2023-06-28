@@ -23,9 +23,10 @@ import {
 } from './blogs.controller.interface';
 import { BlogsService } from '../service/blogs.service';
 import { GetPostsQuery, PostsService } from '../../posts';
-import { BasicGuard } from '../../auth/jwt/basic.strategy';
-import { JwtAccessTokenInfo } from '../../auth/jwt/jwt-access-token.info';
-import { CurrentUser } from '../../auth/jwt/current-user.pipe';
+import { BasicGuard } from '../../../app/auth-basic/basic.strategy';
+import { JwtAccessTokenInfo } from '../../../app/auth-jwt-access/jwt-access-token.info';
+import { CurrentUser } from '../../../core/pipes/current-user.pipe';
+import { AccessTokenUserInfo } from '../../../app/auth-jwt-access/jwt-access-token.strategy';
 
 @ApiTags('blogs')
 @Controller('blogs')
@@ -96,7 +97,7 @@ export class BlogsController {
   @Get(':id/posts')
   @UseGuards(JwtAccessTokenInfo)
   async getPostsByBlog(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AccessTokenUserInfo,
     @Param('id') id: string,
     @Query() query: GetPostsQuery,
   ) {

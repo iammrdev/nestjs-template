@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DataToken, TokensModel } from './tokens.model';
-import { TokensEntity } from './tokens.entity';
 import { Token } from '../../../types/tokens';
+import { RefreshTokenEntity } from '../service/auth.service.interface';
 
 @Injectable()
 export class TokensRepository {
@@ -12,7 +12,7 @@ export class TokensRepository {
     private readonly tokensModel: Model<TokensModel>,
   ) {}
 
-  private buildToken(dbToken: DataToken) {
+  private buildToken(dbToken: DataToken): Token {
     return {
       id: dbToken._id.toString(),
       userId: dbToken.userId,
@@ -25,7 +25,7 @@ export class TokensRepository {
     };
   }
 
-  public async create(tokensEntity: any): Promise<Token> {
+  public async create(tokensEntity: RefreshTokenEntity): Promise<Token> {
     const dbToken = await this.tokensModel.create(tokensEntity);
 
     return this.buildToken(dbToken);
@@ -63,10 +63,10 @@ export class TokensRepository {
 
   public async updateById(
     id: string,
-    tokensEntity: TokensEntity,
+    tokensEntity: RefreshTokenEntity,
   ): Promise<Token | null> {
     const dbToken = await this.tokensModel
-      .findByIdAndUpdate(id, tokensEntity.toObject(), { new: true })
+      .findByIdAndUpdate(id, tokensEntity, { new: true })
       .exec();
 
     return dbToken && this.buildToken(dbToken);

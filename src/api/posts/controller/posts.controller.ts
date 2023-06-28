@@ -25,11 +25,13 @@ import {
 } from './posts.controller.interface';
 import { BlogsService } from '../../blogs';
 import { CommentsService, GetCommentsQuery } from '../../comments';
-import { BasicGuard } from '../../auth/jwt/basic.strategy';
-import { JwtAccessTokenGuard } from '../../auth/jwt/jwt-access-token.guard';
-import { CurrentUser, CurrentUserId } from '../../auth/jwt/current-user.pipe';
+import { BasicGuard } from '../../../app/auth-basic/basic.strategy';
+import { JwtAccessTokenGuard } from '../../../app/auth-jwt-access/jwt-access-token.guard';
+import { CurrentUser } from '../../../core/pipes/current-user.pipe';
+import { CurrentUserId } from '../../../core/pipes/current-user-id.pipe';
 import { UsersService } from '../../users';
-import { JwtAccessTokenInfo } from '../../auth/jwt/jwt-access-token.info';
+import { JwtAccessTokenInfo } from '../../../app/auth-jwt-access/jwt-access-token.info';
+import { AccessTokenUserInfo } from '../../../app/auth-jwt-access/jwt-access-token.strategy';
 
 @ApiTags('posts')
 @Controller('posts')
@@ -61,7 +63,10 @@ export class PostsController {
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
   @Get()
   @UseGuards(JwtAccessTokenInfo)
-  async getPosts(@CurrentUser() user: any, @Query() query: GetPostsQuery) {
+  async getPosts(
+    @CurrentUser() user: AccessTokenUserInfo,
+    @Query() query: GetPostsQuery,
+  ) {
     return this.postsService.getPosts(query, { user });
   }
 
@@ -69,7 +74,10 @@ export class PostsController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not found' })
   @Get(':id')
   @UseGuards(JwtAccessTokenInfo)
-  async getPost(@CurrentUser() user: any, @Param('id') id: string) {
+  async getPost(
+    @CurrentUser() user: AccessTokenUserInfo,
+    @Param('id') id: string,
+  ) {
     console.log({ user });
     const existedPost = await this.postsService.getPostById(id, { user });
 
@@ -103,7 +111,7 @@ export class PostsController {
   @UseGuards(JwtAccessTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updatePostLikeStatus(
-    @CurrentUserId() currentUserId: any,
+    @CurrentUserId() currentUserId: string,
     @Param('id') id: string,
     @Body() dto: UpdatePostLikeStatusDto,
   ) {

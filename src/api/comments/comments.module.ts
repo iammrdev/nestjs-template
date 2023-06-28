@@ -6,7 +6,7 @@ import { CommentsRepository } from './repository/comments.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CommentsModel, CommentsSchema } from './repository/comments.model';
 import { UsersModule } from '../users';
-import { JwtAccessModule } from '../auth/jwt/jwt-access.module';
+import { JwtAccessModule } from '../../app/auth-jwt-access/jwt-access.module';
 
 @Module({
   imports: [

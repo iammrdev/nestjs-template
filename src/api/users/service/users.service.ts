@@ -17,6 +17,7 @@ export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async createUser(dto: CreateUserDto): Promise<User> {
+    // #note: для того, чтобы выводить ошибку по полю "field"
     const [userByEmail, userByLogin] = await Promise.all([
       this.usersRepository.findByLoginOrEmail(dto.email),
       this.usersRepository.findByLoginOrEmail(dto.login),
@@ -24,23 +25,13 @@ export class UsersService {
 
     if (userByEmail) {
       throw new BadRequestException({
-        errorsMessages: [
-          {
-            message: 'User existed',
-            field: 'email',
-          },
-        ],
+        errorsMessages: [{ message: 'User existed', field: 'email' }],
       });
     }
 
     if (userByLogin) {
       throw new BadRequestException({
-        errorsMessages: [
-          {
-            message: 'User existed',
-            field: 'login',
-          },
-        ],
+        errorsMessages: [{ message: 'User existed', field: 'login' }],
       });
     }
 
@@ -51,9 +42,9 @@ export class UsersService {
       .generateConfirmation()
       .setPassword(dto.password.toString());
 
-    const createdUser = await this.usersRepository.create(entity);
+    const { id } = await this.usersRepository.create(entity);
 
-    return createdUser;
+    return entity.setId(id).toView();
   }
 
   async getUsers(query: GetUsersQuery) {
@@ -104,22 +95,23 @@ export class UsersService {
 
     const passwordIsValid = await userEntity.comparePassword(dto.password);
 
-    console.log({ passwordIsValid });
-
-    if (!passwordIsValid) {
+    if (!passwordIsValid || !userEntity.id) {
       throw new UnauthorizedException('Unauthorized');
     }
 
-    return { id: existedUser.id, ...userEntity.toObject() };
+    return {
+      id: userEntity.id,
+      login: userEntity.login,
+      email: userEntity.email,
+      createdAt: userEntity.createdAt,
+    };
   }
 
   async activateUser(id: string): Promise<User | null> {
     const existedUser = await this.getUserById(id);
 
-    console.log({ existedUser });
-
     if (!existedUser) {
-      throw new BadRequestException('Bad request');
+      throw new BadRequestException('User does not exist');
     }
 
     const entity = new UsersEntity(existedUser).activate();
@@ -130,10 +122,8 @@ export class UsersService {
   async updateConfirmation(id: string): Promise<User | null> {
     const existedUser = await this.getUserById(id);
 
-    console.log({ existedUser });
-
     if (!existedUser) {
-      throw new BadRequestException('Bad request');
+      throw new BadRequestException('User does not exist');
     }
 
     const entity = new UsersEntity(existedUser).generateConfirmation();
@@ -145,14 +135,12 @@ export class UsersService {
     const existedUser = await this.usersRepository.findById(id);
 
     if (!existedUser) {
-      throw new BadRequestException('Bad req');
+      throw new BadRequestException('User does not exist');
     }
 
     const entity = await new UsersEntity(existedUser).setPassword(
       newPassword.toString(),
     );
-
-    console.log({ entity });
 
     return this.usersRepository.updateById(id, entity);
   }

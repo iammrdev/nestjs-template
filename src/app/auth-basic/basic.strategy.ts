@@ -8,7 +8,10 @@ export class BasicStrategy extends PassportStrategy(PassportBasicStrategy) {
     super();
   }
 
-  async validate(username: string, password: string): Promise<any> {
+  async validate(
+    username: string,
+    password: string,
+  ): Promise<{ username: string }> {
     if (username !== 'admin' || password !== 'qwerty') {
       throw new UnauthorizedException('forbidden');
     }

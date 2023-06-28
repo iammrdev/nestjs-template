@@ -14,7 +14,7 @@ import {
 import { CreateUserDto, GetUsersQuery } from './users.controller.interface';
 import { UsersService } from '../service/users.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { BasicGuard } from '../../auth/jwt/basic.strategy';
+import { BasicGuard } from '../../../app/auth-basic/basic.strategy';
 
 @ApiTags('users')
 @Controller('users')

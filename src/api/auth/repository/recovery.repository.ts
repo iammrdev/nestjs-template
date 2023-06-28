@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { RecoveryModel } from './recovery.model';
+import { DataRecovery, RecoveryModel } from './recovery.model';
+import { RecoveryEntity } from '../service/auth.service.interface';
 
 @Injectable()
 export class RecoveryRepository {
@@ -10,23 +11,23 @@ export class RecoveryRepository {
     private readonly recoveryModel: Model<RecoveryModel>,
   ) {}
 
-  private buildRecovery(dbRecovery: any) {
+  private buildRecovery(dbRecovery: DataRecovery) {
     return dbRecovery;
   }
 
-  public async create(recoveryEntity: any): Promise<any> {
+  public async create(recoveryEntity: RecoveryEntity): Promise<DataRecovery> {
     const dbRecovery = await this.recoveryModel.create(recoveryEntity);
 
     return this.buildRecovery(dbRecovery);
   }
 
-  public async findById(id: string): Promise<any | null> {
+  public async findById(id: string): Promise<DataRecovery | null> {
     const dbRecovery = await this.recoveryModel.findOne({ _id: id }).exec();
 
     return dbRecovery && this.buildRecovery(dbRecovery);
   }
 
-  public async findByCode(code: string): Promise<any | null> {
+  public async findByCode(code: string): Promise<DataRecovery | null> {
     const dbRecovery = await this.recoveryModel.findOne({ code }).exec();
 
     return dbRecovery && this.buildRecovery(dbRecovery);

@@ -2,6 +2,7 @@ import { genSalt, hash, compare } from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import add from 'date-fns/add';
 import { SALT_ROUNDS } from './users.service.constants';
+import { User } from '../../../types/users';
 
 type Confirmation = {
   status: boolean;
@@ -14,6 +15,7 @@ type Props = {
   login: string;
   email: string;
   createdAt: Date;
+  id?: string;
   confirmation?: Confirmation;
   passwordHash?: string;
 };
@@ -22,11 +24,19 @@ export class UsersEntity {
   public login: string;
   public email: string;
   public createdAt: Date;
+
+  public id?: string;
   public confirmation?: Confirmation;
   public passwordHash?: string;
 
   constructor(props: Props) {
     this.fillEntity(props);
+  }
+
+  public setId(id: string) {
+    this.id = id;
+
+    return this;
   }
 
   public async setPassword(password: string): Promise<UsersEntity> {
@@ -53,7 +63,7 @@ export class UsersEntity {
 
   public activate() {
     if (!this.confirmation) {
-      throw new Error('Not valid call');
+      throw new Error('No confirmation by user');
     }
 
     this.confirmation = {
@@ -66,6 +76,7 @@ export class UsersEntity {
   }
 
   public fillEntity(props: Props) {
+    this.id = props.id;
     this.login = props.login;
     this.email = props.email;
     this.createdAt = props.createdAt;
@@ -80,6 +91,20 @@ export class UsersEntity {
       createdAt: this.createdAt,
       confirmation: this.confirmation,
       passwordHash: this.passwordHash,
+    };
+  }
+
+  public toView(): User {
+    if (!this.id || !this.confirmation) {
+      throw new Error('Incorrect model data');
+    }
+
+    return {
+      id: this.id,
+      login: this.login,
+      email: this.email,
+      createdAt: this.createdAt,
+      confirmation: this.confirmation,
     };
   }
 }

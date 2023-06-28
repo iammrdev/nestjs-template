@@ -6,22 +6,32 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
+import { Request, Response, NextFunction } from 'express';
+import { MongooseModule } from '@nestjs/mongoose';
 import { Cache } from 'cache-manager';
 import { AuthService } from './service/auth.service';
 import { UsersModule } from '../users';
-import { JwtAccessModule } from './jwt/jwt-access.module';
-import { TokensModule } from './service/tokens.module';
+import { JwtAccessModule } from '../../app/auth-jwt-access/jwt-access.module';
 import { AuthController } from './controller/auth.controller';
-import { JwtRefreshModule } from './jwt/jwt-refresh.module';
-import { RecoveryModule } from './service/recovery.module';
-import { BasicModule } from './jwt/basic.module';
-import { Request, Response, NextFunction } from 'express';
+import { JwtRefreshModule } from '../../app/auth-jwt-refresh/jwt-refresh.module';
+import { BasicModule } from '../../app/auth-basic/basic.module';
+import { RecoveryModel, RecoverySchema } from './repository/recovery.model';
+import { TokensModel, TokensSchema } from './repository/tokens.model';
+import { TokensRepository } from './repository/tokens.repository';
+import { RecoveryRepository } from './repository/recovery.repository';
+
+type Attempt = { ip: string; timestamp: number; url: string };
 
 @Module({
   imports: [
+    MongooseModule.forFeature([
+      { name: TokensModel.name, schema: TokensSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: RecoveryModel.name, schema: RecoverySchema },
+    ]),
+
     CacheModule.register(),
-    TokensModule,
-    RecoveryModule,
     UsersModule,
     JwtAccessModule,
     JwtRefreshModule,
@@ -29,7 +39,7 @@ import { Request, Response, NextFunction } from 'express';
   ],
   exports: [AuthService],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, TokensRepository, RecoveryRepository],
 })
 export class AuthModule {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
@@ -53,16 +63,12 @@ export class AuthModule {
     const now = Date.now();
 
     const key = `${req.ip}-${url}`;
-    const attempts = (await this.cacheManager.get(key)) as any;
+    const attempts = (await this.cacheManager.get<Attempt[]>(key)) || [];
 
-    console.log({ key, attempts });
-
-    const newAttempts = (attempts || [])
+    const newAttempts = attempts
       .filter((item) => item.timestamp > now)
       .map((item) => ({ ...item, timestamp: now + 10000 }))
       .concat([{ ip: req.ip, timestamp: now + 10000, url }]);
-
-    console.log({ newAttempts });
 
     await this.cacheManager.set(key, newAttempts, 10000);
 

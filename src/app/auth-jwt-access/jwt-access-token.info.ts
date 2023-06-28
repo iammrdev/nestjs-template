@@ -6,9 +6,9 @@ export class JwtAccessTokenInfo extends AuthGuard('jwt.access') {
   canActivate(context: ExecutionContext) {
     return super.canActivate(context);
   }
-  handleRequest(_err, user) {
-    // if (err || !user) {
-    //     throw err || new UnauthorizedException();
+  handleRequest(_error, user) {
+    // if (error || !user) {
+    //     throw error || new UnauthorizedException();
     //   }
 
     return user;

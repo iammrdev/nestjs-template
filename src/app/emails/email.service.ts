@@ -18,7 +18,12 @@ const buildRecoveryMessage = (code: string) => {
  `;
 };
 
-const sendEmail = async ({ email, code }: any) => {
+type EmailParams = {
+  email: string;
+  code: string;
+};
+
+const sendEmail = async ({ email, code }: EmailParams) => {
   return Mailer.send({
     email: email,
     subject: 'Confirm email',
@@ -26,7 +31,7 @@ const sendEmail = async ({ email, code }: any) => {
   });
 };
 
-const sendRecoveryEmail = async ({ email, code }: any) => {
+const sendRecoveryEmail = async ({ email, code }: EmailParams) => {
   return Mailer.send({
     email: email,
     subject: 'Recovery password',

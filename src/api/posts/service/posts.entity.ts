@@ -166,7 +166,6 @@ export class PostsEntity {
   }
 
   public toView(): Post {
-    console.log('324324', this.id, this.createdAt);
     if (!this.id || !this.createdAt) {
       throw new Error('Incorrect model data');
     }
