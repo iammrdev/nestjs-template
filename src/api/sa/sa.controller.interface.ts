@@ -101,3 +101,10 @@ export class BanUserDto {
   @MinLength(20, { message: 'Invalid ban reason length' })
   public banReason: string;
 }
+
+export class BanBlogDto {
+  @ApiProperty({ required: true })
+  @IsBoolean()
+  @Validate(CustomLoginValidator, { message: 'Invalid ban status' })
+  public isBanned: boolean;
+}

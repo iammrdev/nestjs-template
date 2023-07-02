@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -159,6 +160,15 @@ export class PostsController {
 
     if (!existedPost) {
       throw new NotFoundException('Post is not found');
+    }
+
+    const isBanned = await this.blogsService.checkUserBanByBlog(
+      existedPost.blogId,
+      currentUserId,
+    );
+
+    if (isBanned) {
+      throw new ForbiddenException('Forbidden');
     }
 
     return this.commentsService.createCommentByPost(id, {

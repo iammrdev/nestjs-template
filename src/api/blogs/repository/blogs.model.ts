@@ -6,18 +6,31 @@ type BlogOwnerInfo = {
   userLogin: string;
 };
 
-export type DataBlog = {
+type BanInfo = {
+  isBanned: boolean;
+  banDate: Date | null;
+};
+
+type BannedUser = {
+  id: string;
+  login: string;
+  banInfo: BanInfo;
+};
+
+export type DatabaseBlog = {
   _id: Types.ObjectId;
   name: string;
   description: string;
   websiteUrl: string;
   isMembership: boolean;
   blogOwnerInfo?: BlogOwnerInfo;
+  bannedUsers?: BannedUser[];
+  banInfo?: BanInfo;
   createdAt: Date;
 };
 
 @Schema({ collection: 'blogs' })
-export class BlogsModel extends Document implements Omit<DataBlog, '_id'> {
+export class BlogsModel extends Document implements Omit<DatabaseBlog, '_id'> {
   @Prop({ required: true })
   public name: string;
 
@@ -33,8 +46,17 @@ export class BlogsModel extends Document implements Omit<DataBlog, '_id'> {
   @Prop({ type: MongooseSchema.Types.Mixed })
   public blogOwnerInfo: BlogOwnerInfo;
 
+  @Prop({ type: MongooseSchema.Types.Mixed })
+  public bannedUsers: BannedUser[];
+
+  @Prop({
+    type: MongooseSchema.Types.Mixed,
+    default: { isBanned: false, banDate: null },
+  })
+  public banInfo: BanInfo;
+
   @Prop({ default: now() })
-  createdAt: Date;
+  public createdAt: Date;
 }
 
 export const BlogsSchema = SchemaFactory.createForClass(BlogsModel);

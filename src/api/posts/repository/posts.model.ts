@@ -52,7 +52,7 @@ export class PostsModel extends Document implements Omit<PostRepo, '_id'> {
   public extendedLikesInfo: ExtendedLikesInfo;
 
   @Prop({ default: now() })
-  createdAt: Date;
+  public createdAt: Date;
 }
 
 export const PostsSchema = SchemaFactory.createForClass(PostsModel);

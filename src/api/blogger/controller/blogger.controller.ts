@@ -15,11 +15,15 @@ import {
   UseGuards,
   forwardRef,
 } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
+  BanBlogUserDto,
   CreateBlogDto,
   CreatePostDto,
+  GetBannedUsersQuery,
   GetBlogsQuery,
+  GetUserCommentsQuery,
   UpdateBlogDto,
   UpdatePostDto,
 } from './blogger.controller.interface';
@@ -28,18 +32,22 @@ import { JwtAccessTokenGuard } from '../../../app/auth-jwt-access/jwt-access-tok
 import { CurrentUser } from '../../../core/pipes/current-user.pipe';
 import { AccessTokenUserInfo } from '../../../app/auth-jwt-access/jwt-access-token.strategy';
 import { BlogsService } from '../../blogs';
+import { BanBlogUserCommand } from '../BanBlogUserUseCase';
+import { GetAllCommentsByUserCommand } from '../GetAllCommentsByUserUseCase';
+import { GetUsersByBlogCommand } from '../GetUsersByBlogUseCase';
 
 @ApiTags('blogger')
-@Controller('blogger/blogs')
+@Controller('blogger')
 export class BloggerController {
   constructor(
+    private commandBus: CommandBus,
     private readonly blogsService: BlogsService,
     @Inject(forwardRef(() => PostsService))
     private readonly postsService: PostsService,
   ) {}
 
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
-  @Post()
+  @Post('blogs')
   @UseGuards(JwtAccessTokenGuard)
   async createBlog(
     @CurrentUser() user: AccessTokenUserInfo,
@@ -49,18 +57,18 @@ export class BloggerController {
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
-  @Get()
+  @Get('blogs')
   @UseGuards(JwtAccessTokenGuard)
   async getBlogs(
     @CurrentUser() user: AccessTokenUserInfo,
     @Query() query: GetBlogsQuery,
   ) {
-    return this.blogsService.getBlogsByOwner(user, query);
+    return this.blogsService.getBlogsByOwner(query, user);
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not found' })
-  @Put(':id')
+  @Put('blogs/:id')
   @UseGuards(JwtAccessTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateBlog(
@@ -76,10 +84,7 @@ export class BloggerController {
 
     console.log({ user, existedBlog });
 
-    if (
-      existedBlog.blogOwnerInfo &&
-      existedBlog.blogOwnerInfo.userId !== user.id
-    ) {
+    if (existedBlog.blogOwnerInfo?.userId !== user.id) {
       throw new ForbiddenException('Forbidden action for this blog');
     }
 
@@ -88,7 +93,7 @@ export class BloggerController {
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not found' })
-  @Delete(':id')
+  @Delete('blogs/:id')
   @UseGuards(JwtAccessTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBlog(
@@ -101,10 +106,7 @@ export class BloggerController {
       throw new NotFoundException('Blog is not found');
     }
 
-    if (
-      existedBlog.blogOwnerInfo &&
-      existedBlog.blogOwnerInfo.userId !== user.id
-    ) {
+    if (existedBlog.blogOwnerInfo?.userId !== user.id) {
       throw new ForbiddenException('Forbidden action for this blog');
     }
 
@@ -112,7 +114,7 @@ export class BloggerController {
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
-  @Get(':id/posts')
+  @Get('blogs/:id/posts')
   @UseGuards(JwtAccessTokenGuard)
   async getPostsByBlog(
     @CurrentUser() user: AccessTokenUserInfo,
@@ -125,10 +127,7 @@ export class BloggerController {
       throw new NotFoundException('Blog is not found');
     }
 
-    if (
-      existedBlog.blogOwnerInfo &&
-      existedBlog.blogOwnerInfo.userId !== user.id
-    ) {
+    if (existedBlog.blogOwnerInfo?.userId !== user.id) {
       throw new ForbiddenException('Forbidden action for this blog');
     }
 
@@ -141,7 +140,7 @@ export class BloggerController {
   }
 
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
-  @Post(':id/posts')
+  @Post('blogs/:id/posts')
   @UseGuards(JwtAccessTokenGuard)
   async createPostByBlog(
     @CurrentUser() user: AccessTokenUserInfo,
@@ -154,10 +153,7 @@ export class BloggerController {
       throw new NotFoundException('Blog is not found');
     }
 
-    if (
-      existedBlog.blogOwnerInfo &&
-      existedBlog.blogOwnerInfo.userId !== user.id
-    ) {
+    if (existedBlog.blogOwnerInfo?.userId !== user.id) {
       throw new ForbiddenException('Forbidden action for this blog');
     }
 
@@ -172,7 +168,7 @@ export class BloggerController {
   }
 
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
-  @Put(':id/posts/:postId')
+  @Put('blogs/:id/posts/:postId')
   @UseGuards(JwtAccessTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updatePostByBlog(
@@ -187,10 +183,7 @@ export class BloggerController {
       throw new NotFoundException('Blog is not found');
     }
 
-    if (
-      existedBlog.blogOwnerInfo &&
-      existedBlog.blogOwnerInfo.userId !== user.id
-    ) {
+    if (existedBlog.blogOwnerInfo?.userId !== user.id) {
       throw new ForbiddenException('Forbidden action for this blog');
     }
 
@@ -207,7 +200,7 @@ export class BloggerController {
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not found' })
-  @Delete(':id/posts/:postId')
+  @Delete('blogs/:id/posts/:postId')
   @UseGuards(JwtAccessTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deletePostByBlog(
@@ -221,13 +214,74 @@ export class BloggerController {
       throw new NotFoundException('Blog is not found');
     }
 
-    if (
-      existedBlog.blogOwnerInfo &&
-      existedBlog.blogOwnerInfo.userId !== user.id
-    ) {
+    if (existedBlog.blogOwnerInfo?.userId !== user.id) {
       throw new ForbiddenException('Forbidden action for this blog');
     }
 
     return this.postsService.deletePostById(postId, user);
+  }
+
+  @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
+  @Put('users/:id/ban')
+  @UseGuards(JwtAccessTokenGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async banBlog(
+    @CurrentUser() user: AccessTokenUserInfo,
+    @Param('id') id: string,
+    @Body() dto: BanBlogUserDto,
+  ) {
+    await this.commandBus.execute(
+      new BanBlogUserCommand({
+        bannedUserId: id,
+        ownerId: user.id,
+        banInfo: {
+          banReason: dto.banReason,
+          isBanned: dto.isBanned,
+        },
+        blogId: dto.blogId,
+      }),
+    );
+  }
+
+  @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
+  @Get('users/blog/:id')
+  @UseGuards(JwtAccessTokenGuard)
+  async getBannedUsers(
+    @CurrentUser() user: AccessTokenUserInfo,
+    @Param('id') id: string,
+    @Query() query: GetBannedUsersQuery,
+  ) {
+    const existedBlog = await this.blogsService.getBlogByIdWithOwnerInfo(id);
+
+    if (!existedBlog) {
+      throw new NotFoundException('Blog is not found');
+    }
+
+    if (existedBlog.blogOwnerInfo?.userId !== user.id) {
+      throw new ForbiddenException('Forbidden action for this blog');
+    }
+
+    return this.commandBus.execute(
+      new GetUsersByBlogCommand({
+        blogId: id,
+        isBanned: true,
+        params: query,
+      }),
+    );
+  }
+
+  @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
+  @Get('blogs/comments')
+  @UseGuards(JwtAccessTokenGuard)
+  async getComments(
+    @CurrentUser() user: AccessTokenUserInfo,
+    @Query() query: GetUserCommentsQuery,
+  ) {
+    return this.commandBus.execute(
+      new GetAllCommentsByUserCommand({
+        userId: user.id,
+        query,
+      }),
+    );
   }
 }

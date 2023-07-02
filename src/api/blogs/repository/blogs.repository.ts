@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { AnyObject, Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { CRUDRepository } from '../../../interfaces/crud-repository.interface';
 import { BlogsEntity } from '../service/blogs.entity';
-import { BlogsModel, DataBlog } from './blogs.model';
+import { BlogsModel, DatabaseBlog } from './blogs.model';
 import { Blog } from '../../../types/blogs';
-import { GetBlogsParams, UserData } from './blogs.repository.interfece';
+import { BanInfo, GetBlogsParams } from './blogs.repository.interfece';
 import { Pagination } from '../../../core/pagination';
 import { PaginationList } from '../../../types/common';
 
@@ -18,7 +18,14 @@ export class BlogsRepository
     private readonly blogsModel: Model<BlogsModel>,
   ) {}
 
-  private buildBlog(dataBlog: DataBlog) {
+  private buildRawBlog(dataBlog: DatabaseBlog) {
+    return {
+      id: dataBlog._id.toString(),
+      ...dataBlog,
+    };
+  }
+
+  private buildBlog(dataBlog: DatabaseBlog) {
     return {
       id: dataBlog._id.toString(),
       name: dataBlog.name,
@@ -29,10 +36,11 @@ export class BlogsRepository
     };
   }
 
-  private buildBlogWithOwnerInfo(dataBlog: DataBlog) {
+  private buildBlogWithOwnerInfo(dataBlog: DatabaseBlog) {
     return {
       ...this.buildBlog(dataBlog),
       blogOwnerInfo: dataBlog.blogOwnerInfo,
+      banInfo: dataBlog.banInfo,
     };
   }
 
@@ -55,6 +63,8 @@ export class BlogsRepository
   ): Promise<PaginationList<Blog[]>> {
     const filter = this.getPaginationFilter(params);
 
+    Object.assign(filter, { 'banInfo.isBanned': { $ne: true } });
+
     const totalCount = await this.blogsModel.countDocuments(filter).exec();
 
     const pagination = new Pagination<Blog>({
@@ -74,13 +84,13 @@ export class BlogsRepository
   }
 
   public async findAllByUser(
-    user: UserData,
+    userId: string,
     params: GetBlogsParams,
   ): Promise<PaginationList<Blog[]>> {
     const paginationFilter = this.getPaginationFilter(params);
 
     const filter = Object.assign(paginationFilter, {
-      'blogOwnerInfo.userId': user.id,
+      'blogOwnerInfo.userId': userId,
     });
 
     const totalCount = await this.blogsModel.countDocuments(filter).exec();
@@ -99,6 +109,16 @@ export class BlogsRepository
       .exec();
 
     return pagination.setItems(dbBlogs.map(this.buildBlog)).toView();
+  }
+
+  public async findAllBlogsByUser(userId: string): Promise<Blog[]> {
+    const filter = {
+      'blogOwnerInfo.userId': userId,
+    };
+
+    const dbBlogs = await this.blogsModel.find(filter).exec();
+
+    return dbBlogs.map(this.buildBlog);
   }
 
   public async findAllWithOwnerInfo(
@@ -127,9 +147,20 @@ export class BlogsRepository
   }
 
   public async findById(id: string): Promise<Blog | null> {
-    const dbBlog = await this.blogsModel.findOne({ _id: id }).exec();
+    const dbBlog = await this.blogsModel
+      .findOne({
+        _id: id,
+        'banInfo.isBanned': { $ne: true },
+      })
+      .exec();
 
     return dbBlog && this.buildBlog(dbBlog);
+  }
+
+  public async findRawById(id: string) {
+    const dbBlog = await this.blogsModel.findOne({ _id: id }).exec();
+
+    return dbBlog && this.buildRawBlog(dbBlog);
   }
 
   public async findByIdWithOwnerInfo(id: string): Promise<Blog | null> {
@@ -147,6 +178,20 @@ export class BlogsRepository
       .exec();
 
     return dbBlog && this.buildBlog(dbBlog);
+  }
+
+  public async updateBanByBlogId(
+    blogId: string,
+    banInfo: BanInfo,
+  ): Promise<void> {
+    await this.blogsModel.findByIdAndUpdate(blogId, { banInfo }).exec();
+  }
+
+  public async banUserByBlogId(
+    blogId: string,
+    bannedUsersIds: string[],
+  ): Promise<void> {
+    await this.blogsModel.findByIdAndUpdate(blogId, { bannedUsersIds }).exec();
   }
 
   public async deleteById(id: string): Promise<number> {

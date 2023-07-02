@@ -39,9 +39,9 @@ export class BindUserWithBlogUseCase
       throw new BadRequestException('Invalid blog owner info');
     }
 
-    const entity = new BlogsEntity(existedBlog).setOwnerInfo({
-      userId: existedUser.id,
-      userLogin: existedUser.login,
+    const entity = new BlogsEntity({
+      ...existedBlog,
+      blogOwnerInfo: { userId: existedUser.id, userLogin: existedUser.login },
     });
 
     await this.blogsRepository.updateById(existedBlog.id, entity);

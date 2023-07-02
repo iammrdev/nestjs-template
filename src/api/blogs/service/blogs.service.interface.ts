@@ -13,3 +13,11 @@ export class GetBlogsQuery {
 }
 
 export type UserData = { id: string; login: string };
+
+export class GetBlogUsersQuery {
+  public searchLoginTerm: string;
+  public sortBy: string;
+  public sortDirection: 'desc' | 'asc';
+  public pageNumber: number;
+  public pageSize: number;
+}

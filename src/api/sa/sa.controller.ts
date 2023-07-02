@@ -16,6 +16,7 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { UsersService } from '../users';
 import {
+  BanBlogDto,
   BanUserDto,
   CreateUserDto,
   GetBlogsQuery,
@@ -26,6 +27,7 @@ import { BlogsService } from '../blogs';
 import { CommandBus } from '@nestjs/cqrs';
 import { BanUserCommand } from './BanUserUseCase';
 import { BindUserWithBlogCommand } from './BindUserWithBlogUseCase';
+import { BanBlogCommand } from './BanBlogUseCase';
 
 @ApiTags('sa')
 @Controller('sa')
@@ -99,5 +101,13 @@ export class SuperAdminController {
     await this.commandBus.execute(
       new BindUserWithBlogCommand({ userId, blogId }),
     );
+  }
+
+  @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
+  @Put('blogs/:id/ban')
+  @UseGuards(BasicGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async banBlog(@Param('id') id: string, @Body() dto: BanBlogDto) {
+    await this.commandBus.execute(new BanBlogCommand({ blogId: id, ...dto }));
   }
 }

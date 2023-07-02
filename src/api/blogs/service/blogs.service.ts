@@ -8,16 +8,21 @@ import { Blog } from '../../../types/blogs';
 import { BlogsRepository } from '../repository/blogs.repository';
 import { BlogsEntity } from './blogs.entity';
 import { UpdateBlogDto } from '../controller/blogs.controller.interface';
+import { BlogUsersRepository } from '../repository/blog-users.repository';
 
 @Injectable()
 export class BlogsService {
-  constructor(private readonly blogsRepository: BlogsRepository) {}
+  constructor(
+    private readonly blogsRepository: BlogsRepository,
+    private readonly blogUsersRepository: BlogUsersRepository,
+  ) {}
 
   async createBlog(dto: CreateBlogDto, user?: UserData): Promise<Blog> {
     const entity = new BlogsEntity({
       ...dto,
+      blogOwnerInfo: user && { userId: user.id, userLogin: user.login },
       createdAt: new Date(),
-    }).setOwnerInfo(user && { userId: user?.id, userLogin: user?.login });
+    });
 
     return this.blogsRepository.create(entity);
   }
@@ -26,8 +31,8 @@ export class BlogsService {
     return this.blogsRepository.findAll(query);
   }
 
-  async getBlogsByOwner(user: UserData, query: GetBlogsQuery) {
-    return this.blogsRepository.findAllByUser(user, query);
+  async getBlogsByOwner(query: GetBlogsQuery, user: UserData) {
+    return this.blogsRepository.findAllByUser(user.id, query);
   }
 
   async getBlogsWithOwnerInfo(query: GetBlogsQuery) {
@@ -56,5 +61,15 @@ export class BlogsService {
 
   async deleteAll(): Promise<void> {
     await this.blogsRepository.deleteAll();
+  }
+
+  // async getBannedUsersByBlog(blogId: string, query: GetBlogUsersQuery) {
+  //   return this.blogUsersRepository.findAllBannedByBlog(blogId, query);
+  // }
+
+  async checkUserBanByBlog(blogId: string, userId: string) {
+    const user = await this.blogUsersRepository.findUserByBlog(blogId, userId);
+
+    return Boolean(user);
   }
 }

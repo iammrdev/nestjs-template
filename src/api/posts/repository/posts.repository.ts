@@ -74,6 +74,10 @@ export class PostsRepository
     return this.findAll(params, { blogId });
   }
 
+  public async findAllByBlogs(blogIds: string[]) {
+    return this.postsModel.find({ blogId: { $in: blogIds } });
+  }
+
   public async findById(id: string): Promise<PostData | null> {
     const filter: AnyObject[] = [{ _id: id }, { status: { $ne: 'hidden' } }];
 
@@ -102,6 +106,13 @@ export class PostsRepository
     status: 'active' | 'hidden',
   ): Promise<void> {
     await this.postsModel.updateMany({ authorId }, { status }).exec();
+  }
+
+  public async updateStatusByBlogId(
+    blogId: string,
+    status: 'active' | 'hidden',
+  ): Promise<void> {
+    await this.postsModel.updateMany({ blogId }, { status }).exec();
   }
 
   public async deleteById(id: string): Promise<number> {

@@ -17,8 +17,8 @@ export class BlogsEntity {
   public description: string;
   public websiteUrl: string;
   public isMembership: boolean;
-  public createdAt?: Date;
   public blogOwnerInfo?: BlogOwnerInfo;
+  public createdAt?: Date;
 
   constructor(props: Props) {
     this.fillEntity(props);
@@ -31,12 +31,6 @@ export class BlogsEntity {
     this.websiteUrl = props.websiteUrl;
     this.createdAt = props.createdAt;
     this.blogOwnerInfo = props.blogOwnerInfo;
-  }
-
-  public setOwnerInfo(blogOwnerInfo?: BlogOwnerInfo) {
-    this.blogOwnerInfo = blogOwnerInfo;
-
-    return this;
   }
 
   public toObject() {

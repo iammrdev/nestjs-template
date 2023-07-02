@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
+  IsBoolean,
   IsIn,
   IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
+  MinLength,
   Validate,
   ValidatorConstraint,
   ValidatorConstraintInterface,
@@ -137,4 +139,67 @@ export class UpdatePostDto {
   @IsNotEmpty()
   @MaxLength(1000, { message: 'Invalid content length' })
   public content: string;
+}
+
+export class BanBlogUserDto {
+  @ApiProperty({ required: true })
+  @IsBoolean()
+  public isBanned: boolean;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @MinLength(20, { message: 'Invalid ban reason length' })
+  public banReason: string;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  @IsNotEmpty()
+  public blogId: string;
+}
+
+export class GetBannedUsersQuery {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  public searchLoginTerm = '';
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  public sortBy = 'createdAt';
+
+  @ApiProperty({ enum: ['asc', 'desc'], required: false })
+  @IsIn(['desc', 'asc'])
+  @IsOptional()
+  public sortDirection: 'desc' | 'asc' = 'desc';
+
+  @ApiProperty({ required: false })
+  @Transform(({ value }) => Number(value) || 1)
+  @IsOptional()
+  public pageNumber = 1;
+
+  @ApiProperty({ required: false })
+  @Transform(({ value }) => Number(value) || 10)
+  @IsOptional()
+  public pageSize = 10;
+}
+
+export class GetUserCommentsQuery {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  public sortBy = 'createdAt';
+
+  @ApiProperty({ enum: ['asc', 'desc'], required: false })
+  @IsIn(['desc', 'asc'])
+  @IsOptional()
+  public sortDirection: 'desc' | 'asc' = 'desc';
+
+  @ApiProperty({ required: false })
+  @Transform(({ value }) => Number(value) || 1)
+  @IsOptional()
+  public pageNumber = 1;
+
+  @ApiProperty({ required: false })
+  @Transform(({ value }) => Number(value) || 10)
+  @IsOptional()
+  public pageSize = 10;
 }

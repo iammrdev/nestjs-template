@@ -8,6 +8,7 @@ import { BanUserUseCase } from './BanUserUseCase';
 import { BindUserWithBlogUseCase } from './BindUserWithBlogUseCase';
 import { PostsModule } from '../posts';
 import { CommentsModule } from '../comments';
+import { BanBlogUseCase } from './BanBlogUseCase';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { CommentsModule } from '../comments';
   ],
   exports: [],
   controllers: [SuperAdminController],
-  providers: [BanUserUseCase, BindUserWithBlogUseCase],
+  providers: [BanUserUseCase, BindUserWithBlogUseCase, BanBlogUseCase],
 })
 export class SuperAdminModule {}

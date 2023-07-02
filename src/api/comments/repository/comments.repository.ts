@@ -84,6 +84,34 @@ export class CommentsRepository
     return pagination.setItems(dbComments.map(this.buildComment)).toView();
   }
 
+  public async findAllByPosts(
+    postsIds: string[],
+    params: GetCommentsParams,
+  ): Promise<PaginationList<CommentData[]>> {
+    const filter = [
+      { postId: { $in: postsIds } },
+      { status: { $ne: 'hidden' } },
+    ];
+    const totalCount = await this.commentsModel
+      .countDocuments({ $and: filter })
+      .exec();
+
+    const pagination = new Pagination<CommentData>({
+      page: params.pageNumber,
+      pageSize: params.pageSize,
+      totalCount,
+    });
+
+    const dbComments = await this.commentsModel
+      .find({ $and: filter })
+      .sort({ [params.sortBy]: params.sortDirection })
+      .skip(pagination.skip)
+      .limit(pagination.pageSize)
+      .exec();
+
+    return pagination.setItems(dbComments.map(this.buildComment)).toView();
+  }
+
   public async findById(id: string): Promise<CommentData | null> {
     const filter = [{ _id: id }, { status: { $ne: 'hidden' } }];
 
