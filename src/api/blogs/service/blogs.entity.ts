@@ -3,6 +3,11 @@ type BlogOwnerInfo = {
   userLogin: string;
 };
 
+type BanInfo = {
+  isBanned: boolean;
+  banDate: Date | null;
+};
+
 type Props = {
   name: string;
   description: string;
@@ -10,6 +15,7 @@ type Props = {
   isMembership?: boolean;
   createdAt?: Date;
   blogOwnerInfo?: BlogOwnerInfo;
+  banInfo?: BanInfo;
 };
 
 export class BlogsEntity {
@@ -18,6 +24,7 @@ export class BlogsEntity {
   public websiteUrl: string;
   public isMembership: boolean;
   public blogOwnerInfo?: BlogOwnerInfo;
+  public banInfo?: BanInfo;
   public createdAt?: Date;
 
   constructor(props: Props) {
@@ -31,6 +38,7 @@ export class BlogsEntity {
     this.websiteUrl = props.websiteUrl;
     this.createdAt = props.createdAt;
     this.blogOwnerInfo = props.blogOwnerInfo;
+    this.banInfo = props.banInfo;
   }
 
   public toObject() {
@@ -41,6 +49,7 @@ export class BlogsEntity {
       websiteUrl: this.websiteUrl,
       createdAt: this.createdAt,
       blogOwnerInfo: this.blogOwnerInfo,
+      banInfo: this.banInfo,
     };
   }
 }

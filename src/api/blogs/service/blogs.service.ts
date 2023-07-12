@@ -32,19 +32,21 @@ export class BlogsService {
   }
 
   async getBlogsByOwner(query: GetBlogsQuery, user: UserData) {
-    return this.blogsRepository.findAllByUser(user.id, query);
+    const result = await this.blogsRepository.findAllByUser(user.id, query);
+
+    return result;
   }
 
-  async getBlogsWithOwnerInfo(query: GetBlogsQuery) {
-    return this.blogsRepository.findAllWithOwnerInfo(query);
+  async getExtendedBlogs(query: GetBlogsQuery) {
+    return this.blogsRepository.findAllExtended(query);
   }
 
   async getBlogById(id: string): Promise<Blog | null> {
     return this.blogsRepository.findById(id);
   }
 
-  async getBlogByIdWithOwnerInfo(id: string): Promise<Blog | null> {
-    return this.blogsRepository.findByIdWithOwnerInfo(id);
+  async getExtendedBlogById(id: string): Promise<Blog | null> {
+    return this.blogsRepository.findByIdExtended(id);
   }
 
   async updateBlog(id: string, dto: UpdateBlogDto): Promise<Blog | null> {
@@ -62,10 +64,6 @@ export class BlogsService {
   async deleteAll(): Promise<void> {
     await this.blogsRepository.deleteAll();
   }
-
-  // async getBannedUsersByBlog(blogId: string, query: GetBlogUsersQuery) {
-  //   return this.blogUsersRepository.findAllBannedByBlog(blogId, query);
-  // }
 
   async checkUserBanByBlog(blogId: string, userId: string) {
     const user = await this.blogUsersRepository.findUserByBlog(blogId, userId);

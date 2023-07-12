@@ -35,7 +35,7 @@ export class BanBlogUserUseCase implements ICommandHandler<BanBlogUserCommand> {
       throw new NotFoundException('User does not exist');
     }
 
-    const existedBlog = await this.blogsRepository.findByIdWithOwnerInfo(
+    const existedBlog = await this.blogsRepository.findByIdExtended(
       command.payload.blogId,
     );
 

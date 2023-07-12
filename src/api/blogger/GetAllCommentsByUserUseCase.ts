@@ -33,7 +33,8 @@ export class GetAllCommentsByUserUseCase
   async execute(command: GetAllCommentsByUserCommand) {
     const userId = command.payload.userId;
 
-    const userBlogs = await this.blogsRepository.findAllBlogsByUser(userId);
+    const userBlogs = await this.blogsRepository.findAllByUser(userId);
+
     const userPosts = await this.postsRepository.findAllByBlogs(
       userBlogs.map((item) => item.id),
     );

@@ -87,7 +87,7 @@ export class SuperAdminController {
   @Get('blogs')
   @UseGuards(BasicGuard)
   async getBlogs(@Query() query: GetBlogsQuery) {
-    return this.blogsService.getBlogsWithOwnerInfo(query);
+    return this.blogsService.getExtendedBlogs(query);
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })

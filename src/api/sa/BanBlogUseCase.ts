@@ -2,6 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestException } from '@nestjs/common';
 import { PostsRepository } from '../posts/repository/posts.repository';
 import { BlogsRepository } from '../blogs/repository/blogs.repository';
+import { BlogsEntity } from '../blogs/service/blogs.entity';
 
 type CommandPayload = {
   blogId: string;
@@ -20,7 +21,7 @@ export class BanBlogUseCase implements ICommandHandler<BanBlogCommand> {
   ) {}
 
   async execute(command: BanBlogCommand) {
-    const existedBlog = await this.blogsRepository.findByIdWithOwnerInfo(
+    const existedBlog = await this.blogsRepository.findByIdExtended(
       command.payload.blogId,
     );
 
@@ -28,10 +29,15 @@ export class BanBlogUseCase implements ICommandHandler<BanBlogCommand> {
       throw new BadRequestException('Blog does not exist');
     }
 
-    await this.blogsRepository.updateBanByBlogId(existedBlog.id, {
-      isBanned: command.payload.isBanned,
-      banDate: command.payload.isBanned ? new Date() : null,
+    const entity = new BlogsEntity({
+      ...existedBlog,
+      banInfo: {
+        isBanned: command.payload.isBanned,
+        banDate: command.payload.isBanned ? new Date() : null,
+      },
     });
+
+    await this.blogsRepository.updateById(existedBlog.id, entity);
 
     await this.postsRepository.updateStatusByBlogId(
       existedBlog.id,
