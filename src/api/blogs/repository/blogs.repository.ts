@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { AnyObject, Model } from 'mongoose';
 import { CRUDRepository } from '../../../interfaces/crud-repository.interface';
 import { BlogsEntity } from '../service/blogs.entity';
 import { BlogsModel, DatabaseBlog } from './blogs.model';
@@ -18,13 +18,6 @@ export class BlogsRepository
     private readonly blogsModel: Model<BlogsModel>,
   ) {}
 
-  private buildRawBlog(dataBlog: DatabaseBlog) {
-    return {
-      id: dataBlog._id.toString(),
-      ...dataBlog,
-    };
-  }
-
   private buildBlog(dataBlog: DatabaseBlog) {
     return {
       id: dataBlog._id.toString(),
@@ -36,7 +29,7 @@ export class BlogsRepository
     };
   }
 
-  private buildBlogWithOwnerInfo(dataBlog: DatabaseBlog) {
+  private buildExtendedBlog(dataBlog: DatabaseBlog) {
     return {
       ...this.buildBlog(dataBlog),
       blogOwnerInfo: dataBlog.blogOwnerInfo,
@@ -52,6 +45,35 @@ export class BlogsRepository
     return { name: RegExp(params.searchNameTerm, 'i') };
   }
 
+  private async buildPagination(
+    paginationParams: {
+      pageNumber: number;
+      pageSize: number;
+      sortBy: string;
+      sortDirection: 'asc' | 'desc';
+    },
+    filter: AnyObject,
+  ) {
+    const totalCount = await this.blogsModel.countDocuments(filter).exec();
+
+    const pagination = new Pagination<DatabaseBlog>({
+      page: paginationParams.pageNumber,
+      pageSize: paginationParams.pageSize,
+      totalCount,
+    });
+
+    const dbBlogs = await this.blogsModel
+      .find(filter)
+      .sort({ [paginationParams.sortBy]: paginationParams.sortDirection })
+      .skip(pagination.skip)
+      .limit(pagination.pageSize)
+      .exec();
+
+    pagination.setItems(dbBlogs);
+
+    return pagination;
+  }
+
   public async create(blogsEntity: BlogsEntity): Promise<Blog> {
     const dbBlog = await this.blogsModel.create(blogsEntity.toObject());
 
@@ -65,22 +87,19 @@ export class BlogsRepository
 
     Object.assign(filter, { 'banInfo.isBanned': { $ne: true } });
 
-    const totalCount = await this.blogsModel.countDocuments(filter).exec();
+    const pagination = await this.buildPagination(params, filter);
 
-    const pagination = new Pagination<Blog>({
-      page: params.pageNumber,
-      pageSize: params.pageSize,
-      totalCount,
-    });
+    return pagination.toView(this.buildBlog);
+  }
 
-    const dbBlogs = await this.blogsModel
-      .find(filter)
-      .sort({ [params.sortBy]: params.sortDirection })
-      .skip(pagination.skip)
-      .limit(pagination.pageSize)
-      .exec();
+  public async findExtendedAll(
+    params: GetBlogsParams,
+  ): Promise<PaginationList<Blog[]>> {
+    const filter = this.getPaginationFilter(params);
 
-    return pagination.setItems(dbBlogs.map(this.buildBlog)).toView();
+    const pagination = await this.buildPagination(params, filter);
+
+    return pagination.toView(this.buildExtendedBlog.bind(this));
   }
 
   public async findAllByUser(
@@ -93,22 +112,9 @@ export class BlogsRepository
       'blogOwnerInfo.userId': userId,
     });
 
-    const totalCount = await this.blogsModel.countDocuments(filter).exec();
+    const pagination = await this.buildPagination(params, filter);
 
-    const pagination = new Pagination<Blog>({
-      page: params.pageNumber,
-      pageSize: params.pageSize,
-      totalCount,
-    });
-
-    const dbBlogs = await this.blogsModel
-      .find(filter)
-      .sort({ [params.sortBy]: params.sortDirection })
-      .skip(pagination.skip)
-      .limit(pagination.pageSize)
-      .exec();
-
-    return pagination.setItems(dbBlogs.map(this.buildBlog)).toView();
+    return pagination.toView(this.buildBlog);
   }
 
   public async findAllBlogsByUser(userId: string): Promise<Blog[]> {
@@ -119,31 +125,6 @@ export class BlogsRepository
     const dbBlogs = await this.blogsModel.find(filter).exec();
 
     return dbBlogs.map(this.buildBlog);
-  }
-
-  public async findAllWithOwnerInfo(
-    params: GetBlogsParams,
-  ): Promise<PaginationList<Blog[]>> {
-    const filter = this.getPaginationFilter(params);
-
-    const totalCount = await this.blogsModel.countDocuments(filter).exec();
-
-    const pagination = new Pagination<Blog>({
-      page: params.pageNumber,
-      pageSize: params.pageSize,
-      totalCount,
-    });
-
-    const dbBlogs = await this.blogsModel
-      .find(filter)
-      .sort({ [params.sortBy]: params.sortDirection })
-      .skip(pagination.skip)
-      .limit(pagination.pageSize)
-      .exec();
-
-    return pagination
-      .setItems(dbBlogs.map(this.buildBlogWithOwnerInfo.bind(this)))
-      .toView();
   }
 
   public async findById(id: string): Promise<Blog | null> {
@@ -157,16 +138,10 @@ export class BlogsRepository
     return dbBlog && this.buildBlog(dbBlog);
   }
 
-  public async findRawById(id: string) {
+  public async findExtendedById(id: string): Promise<Blog | null> {
     const dbBlog = await this.blogsModel.findOne({ _id: id }).exec();
 
-    return dbBlog && this.buildRawBlog(dbBlog);
-  }
-
-  public async findByIdWithOwnerInfo(id: string): Promise<Blog | null> {
-    const dbBlog = await this.blogsModel.findOne({ _id: id }).exec();
-
-    return dbBlog && this.buildBlogWithOwnerInfo.bind(this)(dbBlog);
+    return dbBlog && this.buildExtendedBlog.bind(this)(dbBlog);
   }
 
   public async updateById(

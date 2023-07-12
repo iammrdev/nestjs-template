@@ -35,16 +35,16 @@ export class BlogsService {
     return this.blogsRepository.findAllByUser(user.id, query);
   }
 
-  async getBlogsWithOwnerInfo(query: GetBlogsQuery) {
-    return this.blogsRepository.findAllWithOwnerInfo(query);
+  async getExtendedBlogs(query: GetBlogsQuery) {
+    return this.blogsRepository.findExtendedAll(query);
   }
 
   async getBlogById(id: string): Promise<Blog | null> {
     return this.blogsRepository.findById(id);
   }
 
-  async getBlogByIdWithOwnerInfo(id: string): Promise<Blog | null> {
-    return this.blogsRepository.findByIdWithOwnerInfo(id);
+  async getExtendedBlogById(id: string): Promise<Blog | null> {
+    return this.blogsRepository.findExtendedById(id);
   }
 
   async updateBlog(id: string, dto: UpdateBlogDto): Promise<Blog | null> {

@@ -76,7 +76,7 @@ export class BloggerController {
     @Param('id') id: string,
     @Body() dto: UpdateBlogDto,
   ) {
-    const existedBlog = await this.blogsService.getBlogByIdWithOwnerInfo(id);
+    const existedBlog = await this.blogsService.getExtendedBlogById(id);
 
     if (!existedBlog) {
       throw new NotFoundException('Blog is not found');
@@ -100,7 +100,7 @@ export class BloggerController {
     @CurrentUser() user: AccessTokenUserInfo,
     @Param('id') id: string,
   ) {
-    const existedBlog = await this.blogsService.getBlogByIdWithOwnerInfo(id);
+    const existedBlog = await this.blogsService.getExtendedBlogById(id);
 
     if (!existedBlog) {
       throw new NotFoundException('Blog is not found');
@@ -121,7 +121,7 @@ export class BloggerController {
     @Param('id') id: string,
     @Query() query: GetPostsQuery,
   ) {
-    const existedBlog = await this.blogsService.getBlogByIdWithOwnerInfo(id);
+    const existedBlog = await this.blogsService.getExtendedBlogById(id);
 
     if (!existedBlog) {
       throw new NotFoundException('Blog is not found');
@@ -147,7 +147,7 @@ export class BloggerController {
     @Param('id') id: string,
     @Body() dto: CreatePostDto,
   ) {
-    const existedBlog = await this.blogsService.getBlogByIdWithOwnerInfo(id);
+    const existedBlog = await this.blogsService.getExtendedBlogById(id);
 
     if (!existedBlog) {
       throw new NotFoundException('Blog is not found');
@@ -177,7 +177,7 @@ export class BloggerController {
     @Param('postId') postId: string,
     @Body() dto: UpdatePostDto,
   ) {
-    const existedBlog = await this.blogsService.getBlogByIdWithOwnerInfo(id);
+    const existedBlog = await this.blogsService.getExtendedBlogById(id);
 
     if (!existedBlog) {
       throw new NotFoundException('Blog is not found');
@@ -208,7 +208,7 @@ export class BloggerController {
     @Param('id') id: string,
     @Param('postId') postId: string,
   ) {
-    const existedBlog = await this.blogsService.getBlogByIdWithOwnerInfo(id);
+    const existedBlog = await this.blogsService.getExtendedBlogById(id);
 
     if (!existedBlog) {
       throw new NotFoundException('Blog is not found');
@@ -251,7 +251,7 @@ export class BloggerController {
     @Param('id') id: string,
     @Query() query: GetBannedUsersQuery,
   ) {
-    const existedBlog = await this.blogsService.getBlogByIdWithOwnerInfo(id);
+    const existedBlog = await this.blogsService.getExtendedBlogById(id);
 
     if (!existedBlog) {
       throw new NotFoundException('Blog is not found');

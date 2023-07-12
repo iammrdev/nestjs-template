@@ -14,6 +14,8 @@ export type PaginationView<T> = {
   items: T[];
 };
 
+const defaultMapper = (item) => item;
+
 export class Pagination<T> {
   public page: number;
   public pageSize: number;
@@ -40,13 +42,19 @@ export class Pagination<T> {
     return this;
   }
 
-  toView(): PaginationList<T[]> {
+  public mapItems(mapper: (item: T) => T) {
+    this.items = this.items.map(mapper);
+
+    return this;
+  }
+
+  toView<R>(mapper: (item: T) => R = defaultMapper): PaginationList<R[]> {
     return {
       page: this.page,
       pageSize: this.pageSize,
       pagesCount: this.pagesCount,
       totalCount: this.totalCount,
-      items: this.items,
+      items: this.items.map(mapper),
     };
   }
 }
