@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestException } from '@nestjs/common';
-import { PostsRepository } from '../posts/repository/posts.repository';
-import { BlogsRepository } from '../blogs/repository/blogs.repository';
-import { BlogsEntity } from '../blogs/service/blogs.entity';
+import { PostsRepository } from '../../posts/repository/posts.repository';
+import { BlogsRepository } from '../../blogs/repository/blogs.repository';
+import { BlogsEntity } from '../../blogs/service/blogs.entity';
 
 type CommandPayload = {
   blogId: string;
@@ -37,11 +37,11 @@ export class BanBlogUseCase implements ICommandHandler<BanBlogCommand> {
       },
     });
 
-    await this.blogsRepository.updateById(existedBlog.id, entity);
+    await this.blogsRepository.updateById(existedBlog.id, entity.toModel());
 
-    await this.postsRepository.updateStatusByBlogId(
+    await this.postsRepository.setStatusByBlogId(
       existedBlog.id,
-      command.payload.isBanned ? 'hidden' : 'active',
+      command.payload.isBanned ? 'hidden-by-ban' : 'active',
     );
   }
 }

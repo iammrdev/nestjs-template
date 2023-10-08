@@ -10,36 +10,30 @@ import {
   UpdatePostLikeStatusDto,
   UserData,
 } from './posts.service.interface';
-import { Post } from '../../../types/posts';
 import { PostsRepository } from '../repository/posts.repository';
-import { PostsEntity } from './posts.entity';
+import { PostsEntity, createPostEntity } from './posts.entity';
 import { UsersService } from '../../users';
+import { PostsQueryRepository } from '../repository/posts.query.repository';
+import { AppPost } from '../../../types/posts';
 
 @Injectable()
 export class PostsService {
   constructor(
     private readonly postsRepository: PostsRepository,
+    private readonly postsQueryRepository: PostsQueryRepository,
     private readonly usersService: UsersService,
   ) {}
 
-  async createPost(dto: CreatePostDto, user?: UserData): Promise<Post | null> {
-    const entity = new PostsEntity({
-      ...dto,
-      extendedLikesInfo: {
-        dislikes: [],
-        likes: [],
-      },
-      status: 'active',
-      createdAt: new Date(),
-    }).setAuthorId(user?.id);
+  async createPost(dto: CreatePostDto, user?: UserData) {
+    const entity = createPostEntity({ ...dto, userId: user?.id });
 
-    const { id } = await this.postsRepository.create(entity);
+    const { id } = await this.postsRepository.create(entity.toModel());
 
     return entity.setId(id).toView();
   }
 
   async getPosts(query: GetPostsQuery, dto: { user?: UserData }) {
-    const posts = await this.postsRepository.findAll(query);
+    const posts = await this.postsQueryRepository.findAll(query);
     const bannedUsersIds = await this.usersService.getUsersBanned();
 
     return {
@@ -53,10 +47,7 @@ export class PostsService {
     };
   }
 
-  async getPostById(
-    id: string,
-    dto?: { user?: UserData },
-  ): Promise<Post | null> {
+  async getPostById(id: string, dto?: { user?: UserData }) {
     const postData = await this.postsRepository.findById(id);
 
     if (!postData) {
@@ -76,7 +67,7 @@ export class PostsService {
     query: GetPostsQuery,
     dto: { user?: UserData },
   ) {
-    const posts = await this.postsRepository.findAllByBlog(blogId, query);
+    const posts = await this.postsQueryRepository.findAllByBlog(blogId, query);
 
     return {
       ...posts,
@@ -86,11 +77,7 @@ export class PostsService {
     };
   }
 
-  async updatePost(
-    id: string,
-    dto: UpdatePostDto,
-    user?: UserData,
-  ): Promise<Post | null> {
+  async updatePost(id: string, dto: UpdatePostDto, user?: UserData) {
     const existedPost = await this.postsRepository.findById(id);
 
     if (!existedPost) {
@@ -115,7 +102,7 @@ export class PostsService {
     id: string,
     dto: UpdatePostLikeStatusDto,
     user?: UserData,
-  ): Promise<Post | null> {
+  ) {
     const existedPost = await this.postsRepository.findById(id);
 
     if (!existedPost) {
@@ -124,7 +111,7 @@ export class PostsService {
 
     const entity = new PostsEntity({
       ...existedPost,
-      extendedLikesInfo: existedPost.extendedLikesInfo,
+      likesInfo: existedPost.likesInfo,
     })
       .setCurrentUser(user)
       .setLikeStatus(dto.likeStatus);

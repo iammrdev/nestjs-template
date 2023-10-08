@@ -7,16 +7,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuidv4 } from 'uuid';
-import add from 'date-fns/add';
+
 import { TokensRepository } from '../repository/tokens.repository';
 import { RecoveryRepository } from '../repository/recovery.repository';
 import { JWTPayload, JWTPayloadInfo } from '../../../types/auth';
-import {
-  CreateRecoveryDto,
-  GenerateTokenDto,
-  RecoveryEntity,
-  RefreshTokenEntity,
-} from './auth.service.interface';
+import { GenerateTokenDto, RefreshTokenEntity } from './auth.service.interface';
 import { Token } from '../../../types/tokens';
 
 @Injectable()
@@ -114,32 +109,6 @@ export class AuthService {
     if (userSession) {
       throw new BadRequestException('User has active session');
     }
-  }
-
-  async getRefreshToken(token: string): Promise<Token | null> {
-    return this.tokensRepository.findByToken(token);
-  }
-
-  async deleteToken(token: string): Promise<void> {
-    await this.tokensRepository.deleteById(token);
-  }
-
-  async createRecovery(dto: CreateRecoveryDto) {
-    const recovery: RecoveryEntity = {
-      userId: dto.userId,
-      deviceId: uuidv4(),
-      ip: dto.ip,
-      title: dto.title,
-      code: uuidv4(),
-      iat: new Date(),
-      exp: add(new Date(), { minutes: 60 }),
-    };
-
-    return this.recoveryRepository.create(recovery);
-  }
-
-  async getRecovery(code: string) {
-    return this.recoveryRepository.findByCode(code);
   }
 
   async deleteAll() {

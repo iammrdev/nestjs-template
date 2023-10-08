@@ -20,13 +20,14 @@ import {
   CreatePostDto,
   GetBlogsQuery,
   UpdateBlogDto,
-} from './blogs.controller.interface';
+} from './blogs.controller.types';
 import { BlogsService } from '../service/blogs.service';
 import { GetPostsQuery, PostsService } from '../../posts';
 import { BasicGuard } from '../../../app/auth-basic/basic.strategy';
 import { JwtAccessTokenInfo } from '../../../app/auth-jwt-access/jwt-access-token.info';
 import { CurrentUser } from '../../../core/pipes/current-user.pipe';
 import { AccessTokenUserInfo } from '../../../app/auth-jwt-access/jwt-access-token.strategy';
+import { BlogsQueryRepository } from '../repository/blogs.query.repository';
 
 @ApiTags('blogs')
 @Controller('blogs')
@@ -35,6 +36,7 @@ export class BlogsController {
     private readonly blogsService: BlogsService,
     @Inject(forwardRef(() => PostsService))
     private readonly postsService: PostsService,
+    private readonly blogsQueryRepository: BlogsQueryRepository,
   ) {}
 
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
@@ -47,7 +49,7 @@ export class BlogsController {
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
   @Get()
   async getBlogs(@Query() query: GetBlogsQuery) {
-    return this.blogsService.getBlogs(query);
+    return this.blogsQueryRepository.findAll(query);
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
@@ -69,12 +71,6 @@ export class BlogsController {
   @UseGuards(BasicGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateBlog(@Param('id') id: string, @Body() dto: UpdateBlogDto) {
-    const existedBlog = await this.blogsService.getBlogById(id);
-
-    if (!existedBlog) {
-      throw new NotFoundException('Blog is not found');
-    }
-
     await this.blogsService.updateBlog(id, dto);
   }
 
@@ -84,13 +80,7 @@ export class BlogsController {
   @UseGuards(BasicGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBlog(@Param('id') id: string) {
-    const existedBlog = await this.blogsService.getBlogById(id);
-
-    if (!existedBlog) {
-      throw new NotFoundException('Blog is not found');
-    }
-
-    await this.blogsService.deleteBlogById(id);
+    await this.blogsService.deleteBlog(id);
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })

@@ -1,14 +1,14 @@
-import { Injectable } from '@nestjs/common';
 import {
-  CreateBlogDto,
-  GetBlogsQuery,
-  UserData,
-} from './blogs.service.interface';
-import { Blog } from '../../../types/blogs';
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Blog, BlogExtended } from '../../../types/blogs';
 import { BlogsRepository } from '../repository/blogs.repository';
-import { BlogsEntity } from './blogs.entity';
-import { UpdateBlogDto } from '../controller/blogs.controller.interface';
+import { UpdateBlogDto } from '../controller/blogs.controller.types';
 import { BlogUsersRepository } from '../repository/blog-users.repository';
+import { BlogsEntity } from './blogs.entity';
+import { CreateBlogDto, UserData } from './blogs.service.types';
 
 @Injectable()
 export class BlogsService {
@@ -20,45 +20,60 @@ export class BlogsService {
   async createBlog(dto: CreateBlogDto, user?: UserData): Promise<Blog> {
     const entity = new BlogsEntity({
       ...dto,
-      blogOwnerInfo: user && { userId: user.id, userLogin: user.login },
+      blogOwnerInfo: user ? { userId: user.id, userLogin: user.login } : null,
+      banInfo: { isBanned: false, banDate: null },
       createdAt: new Date(),
     });
 
-    return this.blogsRepository.create(entity);
-  }
-
-  async getBlogs(query: GetBlogsQuery) {
-    return this.blogsRepository.findAll(query);
-  }
-
-  async getBlogsByOwner(query: GetBlogsQuery, user: UserData) {
-    const result = await this.blogsRepository.findAllByUser(user.id, query);
-
-    return result;
-  }
-
-  async getExtendedBlogs(query: GetBlogsQuery) {
-    return this.blogsRepository.findAllExtended(query);
+    return this.blogsRepository.create(entity.toModel());
   }
 
   async getBlogById(id: string): Promise<Blog | null> {
     return this.blogsRepository.findById(id);
   }
 
-  async getExtendedBlogById(id: string): Promise<Blog | null> {
+  async getExtendedBlogById(id: string): Promise<BlogExtended | null> {
     return this.blogsRepository.findByIdExtended(id);
   }
 
-  async updateBlog(id: string, dto: UpdateBlogDto): Promise<Blog | null> {
-    const entity = new BlogsEntity(dto);
+  async updateBlog(
+    id: string,
+    dto: UpdateBlogDto,
+    params?: { user?: UserData },
+  ): Promise<Blog | null> {
+    const existedBlog = await this.getExtendedBlogById(id);
 
-    return this.blogsRepository.updateById(id, entity);
+    if (!existedBlog) {
+      throw new NotFoundException('Blog is not found');
+    }
+
+    if (
+      params?.user?.id &&
+      params?.user?.id !== existedBlog.blogOwnerInfo?.userId
+    ) {
+      throw new ForbiddenException('Forbidden action for this blog');
+    }
+
+    const entity = new BlogsEntity({ ...existedBlog, ...dto });
+
+    return this.blogsRepository.updateById(id, entity.toModel());
   }
 
-  async deleteBlogById(id: string): Promise<{ status: 'ok' }> {
-    await this.blogsRepository.deleteById(id);
+  async deleteBlog(id: string, params?: { user?: UserData }): Promise<void> {
+    const existedBlog = await this.getExtendedBlogById(id);
 
-    return { status: 'ok' };
+    if (!existedBlog) {
+      throw new NotFoundException('Blog is not found');
+    }
+
+    if (
+      params?.user?.id &&
+      params?.user?.id !== existedBlog.blogOwnerInfo?.userId
+    ) {
+      throw new ForbiddenException('Forbidden action for this blog');
+    }
+
+    await this.blogsRepository.deleteById(id);
   }
 
   async deleteAll(): Promise<void> {

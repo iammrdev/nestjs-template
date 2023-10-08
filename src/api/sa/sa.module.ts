@@ -4,11 +4,12 @@ import { UsersModule } from '../users';
 import { BlogsModule } from '../blogs';
 import { AuthModule } from '../auth';
 import { SuperAdminController } from './sa.controller';
-import { BanUserUseCase } from './BanUserUseCase';
-import { BindUserWithBlogUseCase } from './BindUserWithBlogUseCase';
 import { PostsModule } from '../posts';
 import { CommentsModule } from '../comments';
-import { BanBlogUseCase } from './BanBlogUseCase';
+import { BanUserUseCase } from './use-case/BanUserUseCase';
+import { BindUserWithBlogUseCase } from './use-case/BindUserWithBlogUseCase';
+import { BanBlogUseCase } from './use-case/BanBlogUseCase';
+import { CreateUserUseCase } from '../users/use-case/create-user-use-case';
 
 @Module({
   imports: [
@@ -21,6 +22,11 @@ import { BanBlogUseCase } from './BanBlogUseCase';
   ],
   exports: [],
   controllers: [SuperAdminController],
-  providers: [BanUserUseCase, BindUserWithBlogUseCase, BanBlogUseCase],
+  providers: [
+    CreateUserUseCase,
+    BanUserUseCase,
+    BindUserWithBlogUseCase,
+    BanBlogUseCase,
+  ],
 })
 export class SuperAdminModule {}

@@ -11,13 +11,15 @@ type CommentatorInfo = {
   userLogin: string;
 };
 
+export type Status = 'active' | 'hidden-by-ban';
+
 export type CommentRepo = {
   _id: Types.ObjectId;
   postId: string;
   content: string;
   likesInfo: LikesInfo;
   commentatorInfo: CommentatorInfo;
-  status: 'active' | 'hidden';
+  status: Status;
   createdAt: Date;
 };
 
@@ -38,8 +40,8 @@ export class CommentsModel
   @Prop({ type: MongooseSchema.Types.Mixed, required: true })
   public likesInfo: LikesInfo;
 
-  @Prop()
-  public status: 'active' | 'hidden';
+  @Prop({ default: 'active' })
+  public status: Status;
 
   @Prop({ default: now() })
   createdAt: Date;

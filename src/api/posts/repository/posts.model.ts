@@ -1,32 +1,12 @@
-import { Document, Schema as MongooseSchema, Types, now } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-
-type LikeAction = {
-  addedAt: Date;
-  login: string;
-  userId: string;
-};
-
-type ExtendedLikesInfo = {
-  dislikes: LikeAction[];
-  likes: LikeAction[];
-};
-
-export type PostRepo = {
-  _id: Types.ObjectId;
-  title: string;
-  shortDescription: string;
-  content: string;
-  blogId: string;
-  blogName: string;
-  createdAt: Date;
-  extendedLikesInfo: ExtendedLikesInfo;
-  authorId?: string;
-  status?: 'active' | 'hidden';
-};
+import { LikesInfo, PostsModelData, Status } from './posts.model.types';
 
 @Schema({ collection: 'posts' })
-export class PostsModel extends Document implements Omit<PostRepo, '_id'> {
+export class PostsModel
+  extends Document
+  implements Omit<PostsModelData, '_id'>
+{
   @Prop({ required: true })
   public title: string;
 
@@ -45,13 +25,13 @@ export class PostsModel extends Document implements Omit<PostRepo, '_id'> {
   @Prop()
   public authorId: string;
 
-  @Prop()
-  public status: 'active' | 'hidden';
+  @Prop({ required: true })
+  public status: Status;
 
   @Prop({ type: MongooseSchema.Types.Mixed, required: true })
-  public extendedLikesInfo: ExtendedLikesInfo;
+  public likesInfo: LikesInfo;
 
-  @Prop({ default: now() })
+  @Prop({ required: true })
   public createdAt: Date;
 }
 

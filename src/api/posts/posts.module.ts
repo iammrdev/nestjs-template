@@ -8,6 +8,7 @@ import { BlogsModule } from '../blogs/blogs.module';
 import { CommentsModule } from '../comments/comments.module';
 import { UsersModule } from '../users';
 import { BlogIdValidator } from './controller/posts.controller.interface';
+import { PostsQueryRepository } from './repository/posts.query.repository';
 
 @Module({
   imports: [
@@ -16,8 +17,13 @@ import { BlogIdValidator } from './controller/posts.controller.interface';
     CommentsModule,
     UsersModule,
   ],
-  exports: [PostsService, PostsRepository],
+  exports: [PostsService, PostsRepository, PostsQueryRepository],
   controllers: [PostsController],
-  providers: [PostsRepository, PostsService, BlogIdValidator],
+  providers: [
+    PostsRepository,
+    PostsQueryRepository,
+    PostsService,
+    BlogIdValidator,
+  ],
 })
 export class PostsModule {}

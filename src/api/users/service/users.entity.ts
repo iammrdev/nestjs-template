@@ -2,7 +2,7 @@ import { genSalt, hash, compare } from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import add from 'date-fns/add';
 import { SALT_ROUNDS } from './users.service.constants';
-import { User } from '../../../types/users';
+import { AppUser } from '../../../types/users';
 
 type Confirmation = {
   status: boolean;
@@ -22,7 +22,6 @@ type Props = {
   email: string;
   createdAt: Date;
   banInfo: BanInfo;
-
   id?: string;
   confirmation?: Confirmation;
   passwordHash?: string;
@@ -104,7 +103,11 @@ export class UsersEntity {
     this.passwordHash = props.passwordHash;
   }
 
-  public toObject() {
+  public toModel() {
+    if (!this.passwordHash || !this.confirmation) {
+      throw new Error('Incorrect model data');
+    }
+
     return {
       login: this.login,
       email: this.email,
@@ -115,9 +118,9 @@ export class UsersEntity {
     };
   }
 
-  public toView(): User {
+  public toView(): AppUser {
     if (!this.id || !this.confirmation) {
-      throw new Error('Incorrect model data');
+      throw new Error('Incorrect view data');
     }
 
     return {
@@ -130,3 +133,22 @@ export class UsersEntity {
     };
   }
 }
+
+type CreateUserEntityParams = {
+  login: string;
+  password: string;
+  email: string;
+};
+
+export const createUserEntity = async (params: CreateUserEntityParams) =>
+  new UsersEntity({
+    ...params,
+    banInfo: {
+      isBanned: false,
+      banDate: null,
+      banReason: null,
+    },
+    createdAt: new Date(),
+  })
+    .generateConfirmation()
+    .setPassword(params.password.toString());

@@ -3,6 +3,11 @@ type BlogOwnerInfo = {
   userLogin: string;
 };
 
+type BanInfo = {
+  isBanned: boolean;
+  banDate: Date | null;
+};
+
 export type Blog = {
   id: string;
   name: string;
@@ -10,5 +15,15 @@ export type Blog = {
   websiteUrl: string;
   isMembership: boolean;
   createdAt: Date;
-  blogOwnerInfo?: BlogOwnerInfo;
+};
+
+export type BlogExtended = {
+  id: string;
+  name: string;
+  description: string;
+  websiteUrl: string;
+  isMembership: boolean;
+  createdAt: Date;
+  banInfo: BanInfo;
+  blogOwnerInfo: BlogOwnerInfo | null;
 };

@@ -7,6 +7,20 @@ import {
   ValidatorConstraintInterface,
 } from 'class-validator';
 
+@ValidatorConstraint({ name: 'email', async: false })
+export class CustomEmailValidator implements ValidatorConstraintInterface {
+  validate(email: string) {
+    return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+  }
+}
+
+@ValidatorConstraint({ name: 'login', async: false })
+export class CustomLoginValidator implements ValidatorConstraintInterface {
+  validate(login: string) {
+    return /^[a-zA-Z0-9_-]*$/.test(login);
+  }
+}
+
 export class LoginDto {
   @ApiProperty({
     required: true,
@@ -23,20 +37,6 @@ export class LoginDto {
   })
   @IsString()
   public password: string;
-}
-
-@ValidatorConstraint({ name: 'email', async: false })
-export class CustomEmailValidator implements ValidatorConstraintInterface {
-  validate(email: string) {
-    return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
-  }
-}
-
-@ValidatorConstraint({ name: 'login', async: false })
-export class CustomLoginValidator implements ValidatorConstraintInterface {
-  validate(login: string) {
-    return /^[a-zA-Z0-9_-]*$/.test(login);
-  }
 }
 
 export class RegistrationDto {

@@ -1,6 +1,6 @@
 import { LikeStatus } from '../../../types/likes';
 import { ForbiddenException } from '@nestjs/common';
-import { Post } from '../../../types/posts';
+import { AppPost } from '../../../types/posts';
 
 type LikeAction = {
   addedAt: Date;
@@ -8,7 +8,7 @@ type LikeAction = {
   userId: string;
 };
 
-type ExtendedLikesInfo = {
+type LikesInfo = {
   dislikes: LikeAction[];
   likes: LikeAction[];
 };
@@ -19,11 +19,11 @@ type Props = {
   blogId: string;
   blogName: string;
   content: string;
-  extendedLikesInfo: ExtendedLikesInfo;
-  status?: 'active' | 'hidden';
+  likesInfo: LikesInfo;
+  status: 'active' | 'hidden-by-ban';
   id?: string;
   authorId?: string;
-  createdAt?: Date;
+  createdAt: Date;
 };
 
 export class PostsEntity {
@@ -32,16 +32,16 @@ export class PostsEntity {
   public blogId: string;
   public blogName: string;
   public content: string;
-  public extendedLikesInfo: ExtendedLikesInfo;
+  public likesInfo: LikesInfo;
 
   public id?: string;
   public authorId?: string;
-  public status?: 'active' | 'hidden';
+  public status: 'active' | 'hidden-by-ban';
   public currentUser?: {
     id: string;
     login: string;
   };
-  public createdAt?: Date;
+  public createdAt: Date;
   public bannedUsersIds?: string[];
 
   constructor(props: Props) {
@@ -53,7 +53,7 @@ export class PostsEntity {
       return LikeStatus.None;
     }
 
-    const hasLike = this.extendedLikesInfo.likes.some(
+    const hasLike = this.likesInfo.likes.some(
       (item) => item.userId === this.currentUser?.id,
     );
 
@@ -61,7 +61,7 @@ export class PostsEntity {
       return LikeStatus.Like;
     }
 
-    const hasDislike = this.extendedLikesInfo.dislikes.some(
+    const hasDislike = this.likesInfo.dislikes.some(
       (item) => item.userId === this.currentUser?.id,
     );
 
@@ -93,11 +93,11 @@ export class PostsEntity {
   public setBannedUsersIds(bannedUsersIds: string[]) {
     this.bannedUsersIds = bannedUsersIds;
 
-    if (this.extendedLikesInfo) {
-      this.extendedLikesInfo.likes = this.extendedLikesInfo.likes.filter(
+    if (this.likesInfo) {
+      this.likesInfo.likes = this.likesInfo.likes.filter(
         (item) => !this.bannedUsersIds?.includes(item.userId),
       );
-      this.extendedLikesInfo.dislikes = this.extendedLikesInfo.dislikes.filter(
+      this.likesInfo.dislikes = this.likesInfo.dislikes.filter(
         (item) => !this.bannedUsersIds?.includes(item.userId),
       );
     }
@@ -112,7 +112,7 @@ export class PostsEntity {
     this.blogId = props.blogId;
     this.blogName = props.blogName;
     this.content = props.content;
-    this.extendedLikesInfo = props.extendedLikesInfo;
+    this.likesInfo = props.likesInfo;
     this.createdAt = props.createdAt;
     this.status = props.status;
   }
@@ -135,32 +135,11 @@ export class PostsEntity {
 
     if (likeStatus === LikeStatus.Like) {
       if (!hasLike) {
-        this.extendedLikesInfo.likes = [
-          ...this.extendedLikesInfo.likes,
-          likeAction,
-        ];
+        this.likesInfo.likes = [...this.likesInfo.likes, likeAction];
       }
 
       if (hasDislike) {
-        this.extendedLikesInfo.dislikes =
-          this.extendedLikesInfo.dislikes.filter(
-            (item) => item.userId !== this.currentUser?.id,
-          );
-      }
-
-      return this;
-    }
-
-    if (likeStatus === LikeStatus.Dislike) {
-      if (!hasDislike) {
-        this.extendedLikesInfo.dislikes = [
-          ...this.extendedLikesInfo.dislikes,
-          likeAction,
-        ];
-      }
-
-      if (hasLike) {
-        this.extendedLikesInfo.likes = this.extendedLikesInfo.likes.filter(
+        this.likesInfo.dislikes = this.likesInfo.dislikes.filter(
           (item) => item.userId !== this.currentUser?.id,
         );
       }
@@ -168,17 +147,55 @@ export class PostsEntity {
       return this;
     }
 
-    this.extendedLikesInfo = {
-      likes: this.extendedLikesInfo.likes.filter(
+    if (likeStatus === LikeStatus.Dislike) {
+      if (!hasDislike) {
+        this.likesInfo.dislikes = [...this.likesInfo.dislikes, likeAction];
+      }
+
+      if (hasLike) {
+        this.likesInfo.likes = this.likesInfo.likes.filter(
+          (item) => item.userId !== this.currentUser?.id,
+        );
+      }
+
+      return this;
+    }
+
+    this.likesInfo = {
+      likes: this.likesInfo.likes.filter(
         (item) => item.userId !== this.currentUser?.id,
       ),
-      dislikes: this.extendedLikesInfo.dislikes.filter(
+      dislikes: this.likesInfo.dislikes.filter(
         (item) => item.userId !== this.currentUser?.id,
       ),
     };
 
     return this;
   }
+
+  public generateExtendLikesInfo = () => {
+    return {
+      likesCount: this.likesInfo.likes.length,
+      dislikesCount: this.likesInfo.dislikes.length,
+      myStatus: this.getLikeStatus(),
+      newestLikes:
+        this.likesInfo.likes
+          .sort((like1, like2) => {
+            if (like2.addedAt > like1.addedAt) {
+              return 1;
+            } else if (like2.addedAt < like1.addedAt) {
+              return -1;
+            }
+
+            return 0;
+          })
+          .slice(0, 3)
+          .map((item) => ({
+            ...item,
+            addedAt: item.addedAt,
+          })) || [],
+    };
+  };
 
   public toModel() {
     return {
@@ -187,14 +204,14 @@ export class PostsEntity {
       blogId: this.blogId,
       blogName: this.blogName,
       content: this.content,
-      extendedLikesInfo: this.extendedLikesInfo,
+      likesInfo: this.likesInfo,
       authorId: this.authorId,
       createdAt: this.createdAt,
       status: this.status,
     };
   }
 
-  public toView(): Post {
+  public toView() {
     if (!this.id || !this.createdAt) {
       throw new Error('Incorrect model data');
     }
@@ -206,28 +223,29 @@ export class PostsEntity {
       blogId: this.blogId,
       blogName: this.blogName,
       content: this.content,
+      status: this.status,
       createdAt: this.createdAt,
-      extendedLikesInfo: {
-        likesCount: this.extendedLikesInfo.likes.length,
-        dislikesCount: this.extendedLikesInfo.dislikes.length,
-        myStatus: this.getLikeStatus(),
-        newestLikes:
-          this.extendedLikesInfo.likes
-            .sort((like1, like2) => {
-              if (like2.addedAt > like1.addedAt) {
-                return 1;
-              } else if (like2.addedAt < like1.addedAt) {
-                return -1;
-              }
-
-              return 0;
-            })
-            .slice(0, 3)
-            .map((item) => ({
-              ...item,
-              addedAt: item.addedAt,
-            })) || [],
-      },
+      extendLikesInfo: this.generateExtendLikesInfo(),
     };
   }
 }
+
+type CreatePostsEntityParams = {
+  title: string;
+  shortDescription: string;
+  content: string;
+  blogId: string;
+  blogName: string;
+  userId?: string;
+};
+
+export const createPostEntity = (params: CreatePostsEntityParams) =>
+  new PostsEntity({
+    ...params,
+    likesInfo: {
+      dislikes: [],
+      likes: [],
+    },
+    status: 'active',
+    createdAt: new Date(),
+  });

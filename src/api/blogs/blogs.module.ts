@@ -7,6 +7,8 @@ import { BlogsRepository } from './repository/blogs.repository';
 import { PostsModule } from '../posts/posts.module';
 import { BlogUsersModel, BlogUsersSchema } from './repository/blog-users.model';
 import { BlogUsersRepository } from './repository/blog-users.repository';
+import { BlogsQueryRepository } from './repository/blogs.query.repository';
+import { BlogUsersQueryRepository } from './repository/blog-users.query.repository';
 
 @Module({
   imports: [
@@ -16,8 +18,20 @@ import { BlogUsersRepository } from './repository/blog-users.repository';
     ]),
     forwardRef(() => PostsModule),
   ],
-  exports: [BlogsService, BlogsRepository, BlogUsersRepository],
+  exports: [
+    BlogsService,
+    BlogsRepository,
+    BlogsQueryRepository,
+    BlogUsersQueryRepository,
+    BlogUsersRepository,
+  ],
   controllers: [BlogsController],
-  providers: [BlogsRepository, BlogUsersRepository, BlogsService],
+  providers: [
+    BlogsRepository,
+    BlogsQueryRepository,
+    BlogUsersRepository,
+    BlogUsersQueryRepository,
+    BlogsService,
+  ],
 })
 export class BlogsModule {}

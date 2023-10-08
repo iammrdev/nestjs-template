@@ -12,7 +12,7 @@ POST {{baseUrl}}/posts HTTP/1.1
 Authorization: Basic YWRtaW46cXdlcnR5
 Content-Type: application/json
 
-{"title":"valid","content":"valid","blogId":"647b39b24ffc9a46720289c1","shortDescription":"lengthYFQOoCIwGnlX5sP3aW3RlaRSQx"}
+{"title":"valid","content":"valid","blogId":"6553c3acca72c9f694492b57","shortDescription":"lengthYFQOoCIwGnlX5sP3aW3RlaRSQx"}
 
 ###
 

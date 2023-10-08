@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CRUDRepository } from '../../../interfaces/crud-repository.interface';
-import { CommentsModel, CommentRepo } from './comments.model';
+import { CommentsModel, CommentRepo, Status } from './comments.model';
 import {
   CommentData,
   GetCommentsParams,
@@ -135,9 +135,9 @@ export class CommentsRepository
     return this.buildComment(dbComment);
   }
 
-  public async updateStatusByAuthorId(
+  public async setStatusByAuthorId(
     authorId: string,
-    status: 'active' | 'hidden',
+    status: Status,
   ): Promise<void> {
     await this.commentsModel
       .updateMany({ 'commentatorInfo.userId': authorId }, { status })

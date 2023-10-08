@@ -1,20 +1,16 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
-  InternalServerErrorException,
   Post,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import isAfter from 'date-fns/isAfter';
-import { AuthService } from '../service/auth.service';
 import {
   LoginDto,
   NewPasswordDto,
@@ -23,24 +19,31 @@ import {
   RegistrationConfirmationDto,
   RegistrationDto,
 } from './auth.dto';
-import { UsersService } from '../../../api/users';
 import { Response, Request } from 'express';
 import { JwtAccessTokenGuard } from '../../../app/auth-jwt-access/jwt-access-token.guard';
 import { CurrentUser } from '../../../core/pipes/current-user.pipe';
 import { CurrentUserId } from '../../../core/pipes/current-user-id.pipe';
 import { buildObject } from '../../../core/buildObject';
-import { EmailService } from '../../../app/emails/email.service';
 
 import { JwtRefreshTokenGuard } from '../../../app/auth-jwt-refresh/jwt-refresh-token.guard';
 import { AuthMeRdo } from './auth.rdo';
 import { RefreshTokenUserInfo } from '../../../app/auth-jwt-refresh/jwt-refresh-token.strategy';
+import { LoginUserCommand } from '../use-case/login-user-use-case';
+import { RegisterUserCommand } from '../use-case/register-user-use-case.ts';
+import { ResendRegistrationEmailCommand } from '../use-case/resened-registration-email-use-case';
+import { GenerateNewPasswordCommand } from '../use-case/generate-new-password-use-case';
+import { ConfirmRegistrationCommand } from '../use-case/confirm-registration-use-case';
+import { RecoveryPasswordCommand } from '../use-case/recovery-password-use-case.ts';
+import { GenerateNewTokensCommand } from '../use-case/generate-new-tokens-use-case';
+import { LogoutUserCommand } from '../use-case/logout-user-use-case';
+import { UsersRepository } from '../../users/repository/users.repository';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
-    private readonly usersService: UsersService,
-    private readonly authService: AuthService,
+    private readonly commandBus: CommandBus,
+    private readonly usersRepository: UsersRepository,
   ) {}
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
@@ -49,36 +52,31 @@ export class AuthController {
   async login(
     @Req() req: Request,
     @Body() dto: LoginDto,
-    @Res({ passthrough: true }) response: Response,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    const verifiedUser = await this.usersService.verifyUser(dto);
+    const command = new LoginUserCommand({
+      ...dto,
+      ip: req.socket.remoteAddress || '0.0.0.0',
+      userAgent: req.headers['user-agent'] || 'none',
+    });
 
-    const { accessToken, refreshToken } =
-      await this.authService.generateAuthInfo({
-        ...verifiedUser,
-        userId: verifiedUser.id,
-        ip: req.socket.remoteAddress || '0.0.0.0',
-        title: req.headers['user-agent'] || 'none',
-      });
+    const tokens = await this.commandBus.execute(command);
 
-    response.cookie('refreshToken', refreshToken, {
+    res.cookie('refreshToken', tokens.refreshToken, {
       secure: process.env.NODE_ENV !== 'development',
       httpOnly: true,
     });
 
-    return { accessToken };
+    return { accessToken: tokens.accessToken };
   }
 
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
   @Post('registration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registration(@Body() dto: RegistrationDto) {
-    const newUser = await this.usersService.createUser(dto);
+    const command = new RegisterUserCommand(dto);
 
-    await EmailService.sendEmail({
-      email: newUser.email,
-      code: newUser.confirmation.code,
-    });
+    await this.commandBus.execute(command);
   }
 
   @ApiResponse({
@@ -88,65 +86,18 @@ export class AuthController {
   @Post('registration-email-resending')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationEmailResending(@Body() dto: RegistratioEmailResendingDto) {
-    const user = await this.usersService.getUserByEmail(dto.email);
+    const command = new ResendRegistrationEmailCommand(dto);
 
-    if (!user || user.confirmation.status) {
-      throw new BadRequestException({
-        errorsMessages: [{ message: 'Invalid email', field: 'email' }],
-      });
-    }
-
-    const newUser = await this.usersService.updateConfirmation(user.id);
-
-    if (!newUser) {
-      throw new BadRequestException({
-        errorsMessages: [{ message: 'Invalid email', field: 'email' }],
-      });
-    }
-
-    const info = await EmailService.sendEmail({
-      email: newUser.email,
-      code: newUser.confirmation.code,
-    });
-
-    if (!info.messageId) {
-      throw new InternalServerErrorException('Server error');
-    }
+    await this.commandBus.execute(command);
   }
 
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
   @Post('registration-confirmation')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationConfirmation(@Body() dto: RegistrationConfirmationDto) {
-    const user = await this.usersService.getUserByConfirmationCode(dto.code);
+    const command = new ConfirmRegistrationCommand(dto);
 
-    if (!user) {
-      throw new BadRequestException({
-        errorsMessages: [{ message: 'Invalid code', field: 'code' }],
-      });
-    }
-
-    const isExp = isAfter(new Date(), user.confirmation.expiration);
-
-    if (
-      isExp ||
-      user.confirmation.code !== dto.code ||
-      user.confirmation.status
-    ) {
-      throw new BadRequestException({
-        errorsMessages: [{ message: 'Invalid code', field: 'code' }],
-      });
-    }
-
-    await this.usersService.activateUser(user.id);
-  }
-
-  @Get('me')
-  @UseGuards(JwtAccessTokenGuard)
-  public async updateUserData(@CurrentUserId() currentUserId: string) {
-    const user = await this.usersService.getUserById(currentUserId);
-
-    return buildObject(AuthMeRdo, user);
+    await this.commandBus.execute(command);
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No content' })
@@ -156,60 +107,22 @@ export class AuthController {
     @Req() req: Request,
     @Body() dto: PasswordRecoveryDto,
   ) {
-    const user = await this.usersService.getUserByEmail(dto.email);
-
-    if (!user) {
-      return;
-    }
-
-    const recovery = await this.authService.createRecovery({
-      userId: user.id,
+    const command = new RecoveryPasswordCommand({
+      email: dto.email,
       ip: req.socket.remoteAddress || '0.0.0.0',
-      title: req.headers['user-agent'] || 'none',
+      userAgent: req.headers['user-agent'] || 'none',
     });
 
-    const info = await EmailService.sendRecoveryEmail({
-      email: user.email,
-      code: recovery.code,
-    });
-
-    if (!info.messageId) {
-      throw new InternalServerErrorException('Server error');
-    }
+    await this.commandBus.execute(command);
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No content' })
   @Post('new-password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(@Body() dto: NewPasswordDto) {
-    const recovery = await this.authService.getRecovery(dto.recoveryCode);
+    const command = new GenerateNewPasswordCommand(dto);
 
-    if (!recovery) {
-      throw new BadRequestException('Bad request');
-    }
-
-    const user = await this.usersService.updatePassword(
-      recovery.userId,
-      dto.newPassword,
-    );
-
-    return user;
-  }
-
-  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No content' })
-  @Post('logout')
-  @UseGuards(JwtRefreshTokenGuard)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  public async logout(@CurrentUser() currentUser: RefreshTokenUserInfo) {
-    const tokenInfo = await this.authService.getRefreshToken(
-      currentUser.refreshToken,
-    );
-
-    if (!tokenInfo) {
-      throw new UnauthorizedException('forbidden');
-    }
-
-    await this.authService.deleteToken(tokenInfo.id);
+    return this.commandBus.execute(command);
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
@@ -219,33 +132,41 @@ export class AuthController {
   async refreshToken(
     @Req() req: Request,
     @CurrentUser() currentUser: RefreshTokenUserInfo,
-    @Res({ passthrough: true }) response: Response,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    const tokenInfo = await this.authService.getRefreshToken(
-      currentUser.refreshToken,
+    const command = new GenerateNewTokensCommand({
+      userInfo: currentUser,
+      ip: req.socket.remoteAddress || '0.0.0.0',
+      userAgent: req.headers['user-agent'] || 'none',
+    });
+
+    const { accessToken, refreshToken } = await this.commandBus.execute(
+      command,
     );
 
-    if (!tokenInfo) {
-      throw new UnauthorizedException('forbidden');
-    }
-
-    await this.authService.deleteToken(tokenInfo.id);
-
-    const { accessToken, refreshToken } =
-      await this.authService.generateAuthInfo({
-        userId: currentUser.id,
-        login: currentUser.login,
-        email: currentUser.email,
-        deviceId: tokenInfo.deviceId,
-        ip: req.socket.remoteAddress || '0.0.0.0',
-        title: req.headers['user-agent'] || 'none',
-      });
-
-    response.cookie('refreshToken', refreshToken, {
+    res.cookie('refreshToken', refreshToken, {
       secure: process.env.NODE_ENV !== 'development',
       httpOnly: true,
     });
 
     return { accessToken };
+  }
+
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No content' })
+  @Post('logout')
+  @UseGuards(JwtRefreshTokenGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public async logout(@CurrentUser() currentUser: RefreshTokenUserInfo) {
+    const command = new LogoutUserCommand({ userInfo: currentUser });
+
+    await this.commandBus.execute(command);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAccessTokenGuard)
+  public async updateUserData(@CurrentUserId() currentUserId: string) {
+    const user = await this.usersRepository.findById(currentUserId);
+
+    return buildObject(AuthMeRdo, user);
   }
 }

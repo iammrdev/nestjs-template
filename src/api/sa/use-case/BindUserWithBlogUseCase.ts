@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersRepository } from '../users/repository/users.repository';
 import { BadRequestException } from '@nestjs/common';
-import { BlogsRepository } from '../blogs/repository/blogs.repository';
-import { BlogsEntity } from '../blogs/service/blogs.entity';
+import { UsersRepository } from '../../users/repository/users.repository';
+import { BlogsRepository } from '../../blogs/repository/blogs.repository';
+import { BlogsEntity } from '../../blogs/service/blogs.entity';
 
 type CommandPayload = {
   userId: string;
@@ -31,7 +31,7 @@ export class BindUserWithBlogUseCase
       throw new BadRequestException('User does not exist');
     }
 
-    const existedBlog = await this.blogsRepository.findById(
+    const existedBlog = await this.blogsRepository.findByIdExtended(
       command.payload.blogId,
     );
 
@@ -44,6 +44,6 @@ export class BindUserWithBlogUseCase
       blogOwnerInfo: { userId: existedUser.id, userLogin: existedUser.login },
     });
 
-    await this.blogsRepository.updateById(existedBlog.id, entity);
+    await this.blogsRepository.updateById(existedBlog.id, entity.toModel());
   }
 }

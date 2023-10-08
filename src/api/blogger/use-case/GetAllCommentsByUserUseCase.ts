@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BlogsRepository } from '../blogs/repository/blogs.repository';
-import { PostsRepository } from '../posts/repository/posts.repository';
-import { CommentsRepository } from '../comments/repository/comments.repository';
-import { CommentsEntity } from '../comments/service/comments.entity';
+import { CommentsRepository } from '../../comments/repository/comments.repository';
+import { CommentsEntity } from '../../comments/service/comments.entity';
+import { BlogsQueryRepository } from '../../blogs/repository/blogs.query.repository';
+import { PostsQueryRepository } from '../../posts/repository/posts.query.repository';
 
 export type GetAllCommentsByUseParams = {
   sortBy: string;
@@ -25,17 +25,18 @@ export class GetAllCommentsByUserUseCase
   implements ICommandHandler<GetAllCommentsByUserCommand>
 {
   constructor(
-    private readonly blogsRepository: BlogsRepository,
-    private readonly postsRepository: PostsRepository,
+    private readonly blogsQueryRepository: BlogsQueryRepository,
+    private readonly postsQueryRepository: PostsQueryRepository,
     private readonly commentsRepository: CommentsRepository,
   ) {}
 
   async execute(command: GetAllCommentsByUserCommand) {
     const userId = command.payload.userId;
 
-    const userBlogs = await this.blogsRepository.findAllByUser(userId);
+    // #todo: заменить на базовый репозиторий без пагинации
+    const userBlogs = await this.blogsQueryRepository.findAllByUser(userId);
 
-    const userPosts = await this.postsRepository.findAllByBlogs(
+    const userPosts = await this.postsQueryRepository.findAllByBlogs(
       userBlogs.map((item) => item.id),
     );
 

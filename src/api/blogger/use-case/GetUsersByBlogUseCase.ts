@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BlogUsersRepository } from '../blogs/repository/blog-users.repository';
+import { BlogUsersQueryRepository } from '../../blogs/repository/blog-users.query.repository';
 
 export type GetUsersByBlogParams = {
   searchLoginTerm: string;
@@ -23,15 +23,16 @@ export class GetUsersByBlogCommand {
 export class GetUsersByBlogUseCase
   implements ICommandHandler<GetUsersByBlogCommand>
 {
-  constructor(private readonly blogUsersRepository: BlogUsersRepository) {}
+  constructor(
+    private readonly blogUsersQueryRepository: BlogUsersQueryRepository,
+  ) {}
 
   async execute(command: GetUsersByBlogCommand) {
     const blogId = command.payload.blogId;
 
-    return this.blogUsersRepository.findAllUsersByBlog(
-      blogId,
-
-      { ...command.payload.params, isBanned: command.payload.isBanned },
-    );
+    return this.blogUsersQueryRepository.findAllUsersByBlog(blogId, {
+      ...command.payload.params,
+      isBanned: command.payload.isBanned,
+    });
   }
 }

@@ -1,21 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { GetBlogUsersQuery } from './blogs.repository.interfece';
-import { Pagination } from '../../../core/pagination';
-import { BanInfo, BlogUsersModel, DataBlogUser } from './blog-users.model';
-
-interface BlogUserEntity {
-  userId: string;
-  userLogin: string;
-  blogId: string;
-  banInfo: BanInfo;
-}
-
-const SORT_BY_MAP = {
-  id: 'userId',
-  login: 'userLogin',
-};
+import { BlogUsersModel } from './blog-users.model';
+import { BlogUsersModelData } from './blog-users.model.types';
 
 @Injectable()
 export class BlogUsersRepository {
@@ -24,7 +11,7 @@ export class BlogUsersRepository {
     private readonly blogUsersModel: Model<BlogUsersModel>,
   ) {}
 
-  private buildBlogUser(dataBlogUser: DataBlogUser) {
+  private buildBlogUser(dataBlogUser: BlogUsersModelData) {
     return {
       id: dataBlogUser.userId,
       login: dataBlogUser.userLogin,
@@ -32,40 +19,14 @@ export class BlogUsersRepository {
     };
   }
 
-  public async create(blogUser: BlogUserEntity) {
+  public async create(blogUserData: Omit<BlogUsersModelData, '_id'>) {
     const dbBlog = await this.blogUsersModel.findOneAndUpdate(
-      { userId: blogUser.userId },
-      blogUser,
+      { userId: blogUserData.userId },
+      blogUserData,
       { upsert: true },
     );
 
     return dbBlog && this.buildBlogUser(dbBlog);
-  }
-
-  public async findAllUsersByBlog(blogId: string, params: GetBlogUsersQuery) {
-    const filter = { blogId, 'banInfo.isBanned': params.isBanned };
-
-    if (params.searchLoginTerm) {
-      Object.assign(filter, { login: RegExp(params.searchLoginTerm, 'i') });
-    }
-    const totalCount = await this.blogUsersModel.countDocuments(filter).exec();
-
-    const pagination = new Pagination({
-      page: params.pageNumber,
-      pageSize: params.pageSize,
-      totalCount,
-    });
-
-    const sortBy = SORT_BY_MAP[params.sortBy] || params.sortBy;
-
-    const dbBlogs = await this.blogUsersModel
-      .find(filter)
-      .sort({ [sortBy]: params.sortDirection })
-      .skip(pagination.skip)
-      .limit(pagination.pageSize)
-      .exec();
-
-    return pagination.setItems(dbBlogs.map(this.buildBlogUser)).toView();
   }
 
   public async findUserByBlog(blogId: string, userId: string) {
@@ -74,17 +35,23 @@ export class BlogUsersRepository {
     return dbBlog && this.buildBlogUser(dbBlog);
   }
 
-  public async updateByUserId(userId: string, blogUserEntity: BlogUserEntity) {
+  public async updateByUserId(
+    userId: string,
+    blogUserData: BlogUsersModelData,
+  ) {
     const dbBlog = await this.blogUsersModel
-      .findOneAndUpdate({ userId }, blogUserEntity, { new: true })
+      .findOneAndUpdate({ userId }, blogUserData, { new: true })
       .exec();
 
     return dbBlog && this.buildBlogUser(dbBlog);
   }
 
-  public async updateByBlogId(blogId: string, blogUserEntity: BlogUserEntity) {
+  public async updateByBlogId(
+    blogId: string,
+    blogUserData: BlogUsersModelData,
+  ) {
     const dbBlog = await this.blogUsersModel
-      .findOneAndUpdate({ blogId }, blogUserEntity, { new: true })
+      .findOneAndUpdate({ blogId }, blogUserData, { new: true })
       .exec();
 
     return dbBlog && this.buildBlogUser(dbBlog);

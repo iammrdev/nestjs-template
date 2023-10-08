@@ -1,84 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { AnyObject, Model } from 'mongoose';
-import { CRUDRepository } from '../../../interfaces/crud-repository.interface';
-import { PostRepo, PostsModel } from './posts.model';
+import { PostsModel } from './posts.model';
 import { PostsEntity } from '../service/posts.entity';
-import { GetPostsParams, PostData } from './posts.repository.interfece';
-import { Pagination } from '../../../core/pagination';
-import { PaginationList } from '../../../types/common';
+import { PostsModelData, Status } from './posts.model.types';
+import { AppPost } from '../../../types/posts';
 
 @Injectable()
-export class PostsRepository
-  implements CRUDRepository<PostsEntity, string, PostData>
-{
+export class PostsRepository {
   constructor(
     @InjectModel(PostsModel.name)
     private readonly postsModel: Model<PostsModel>,
   ) {}
 
-  private buildPost(dbPost: PostRepo) {
+  private buildPost(dbPost: PostsModelData): AppPost {
     return {
       id: dbPost._id.toString(),
       title: dbPost.title,
       shortDescription: dbPost.shortDescription,
       content: dbPost.content,
+      status: dbPost.status,
       blogId: dbPost.blogId,
       blogName: dbPost.blogName,
-      extendedLikesInfo: dbPost.extendedLikesInfo,
+      likesInfo: dbPost.likesInfo,
       authorId: dbPost.authorId,
       createdAt: dbPost.createdAt,
     };
   }
 
-  public async create(postsEntity: PostsEntity): Promise<PostData> {
-    const dbPost = await this.postsModel.create(postsEntity.toModel());
+  public async create(
+    postsEntity: Omit<PostsModelData, '_id'>,
+  ): Promise<AppPost> {
+    const dbPost = await this.postsModel.create(postsEntity);
 
     return this.buildPost(dbPost);
   }
 
-  public async findAll(
-    params: GetPostsParams,
-    filter?: { blogId: string },
-  ): Promise<PaginationList<PostData[]>> {
-    const complexFilter: AnyObject[] = [{ status: { $ne: 'hidden' } }];
-
-    if (filter) {
-      complexFilter.push(filter);
-    }
-
-    const totalCount = await this.postsModel
-      .countDocuments({ $and: complexFilter })
-      .exec();
-
-    const pagination = new Pagination<PostData>({
-      page: params.pageNumber,
-      pageSize: params.pageSize,
-      totalCount,
-    });
-
-    const dbPosts = await this.postsModel
-      .find({ $and: complexFilter })
-      .sort({ [params.sortBy]: params.sortDirection })
-      .skip(pagination.skip)
-      .limit(pagination.pageSize)
-      .exec();
-
-    return pagination.setItems(dbPosts.map(this.buildPost)).toView();
-  }
-
-  public async findAllByBlog(
-    blogId: string,
-    params: GetPostsParams,
-  ): Promise<PaginationList<PostData[]>> {
-    return this.findAll(params, { blogId });
-  }
-
-  public async findAllByBlogs(blogIds: string[]) {
-    return this.postsModel.find({ blogId: { $in: blogIds } });
-  }
-
-  public async findById(id: string): Promise<PostData | null> {
+  public async findById(id: string): Promise<AppPost | null> {
     const filter: AnyObject[] = [{ _id: id }, { status: { $ne: 'hidden' } }];
 
     const dbPost = await this.postsModel.findOne({ $and: filter }).exec();
@@ -89,7 +47,7 @@ export class PostsRepository
   public async updateById(
     id: string,
     postsEntity: PostsEntity,
-  ): Promise<PostData | null> {
+  ): Promise<AppPost | null> {
     const dbPost = await this.postsModel
       .findByIdAndUpdate(id, postsEntity.toModel(), { new: true })
       .exec();
@@ -101,18 +59,18 @@ export class PostsRepository
     return this.buildPost(dbPost);
   }
 
-  public async updateStatusByAuthorId(
-    authorId: string,
-    status: 'active' | 'hidden',
-  ): Promise<void> {
-    await this.postsModel.updateMany({ authorId }, { status }).exec();
-  }
-
-  public async updateStatusByBlogId(
+  public async setStatusByBlogId(
     blogId: string,
-    status: 'active' | 'hidden',
+    status: Status,
   ): Promise<void> {
     await this.postsModel.updateMany({ blogId }, { status }).exec();
+  }
+
+  public async setStatusByAuthorId(
+    authorId: string,
+    status: Status,
+  ): Promise<void> {
+    await this.postsModel.updateMany({ authorId }, { status }).exec();
   }
 
   public async deleteById(id: string): Promise<number> {

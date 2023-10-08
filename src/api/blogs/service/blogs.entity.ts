@@ -13,9 +13,9 @@ type Props = {
   description: string;
   websiteUrl: string;
   isMembership?: boolean;
-  createdAt?: Date;
-  blogOwnerInfo?: BlogOwnerInfo;
-  banInfo?: BanInfo;
+  createdAt: Date;
+  blogOwnerInfo?: BlogOwnerInfo | null;
+  banInfo: BanInfo;
 };
 
 export class BlogsEntity {
@@ -23,8 +23,8 @@ export class BlogsEntity {
   public description: string;
   public websiteUrl: string;
   public isMembership: boolean;
-  public blogOwnerInfo?: BlogOwnerInfo;
-  public banInfo?: BanInfo;
+  public blogOwnerInfo: BlogOwnerInfo | null;
+  public banInfo: BanInfo;
   public createdAt?: Date;
 
   constructor(props: Props) {
@@ -37,11 +37,15 @@ export class BlogsEntity {
     this.isMembership = props.isMembership || false;
     this.websiteUrl = props.websiteUrl;
     this.createdAt = props.createdAt;
-    this.blogOwnerInfo = props.blogOwnerInfo;
+    this.blogOwnerInfo = props.blogOwnerInfo || null;
     this.banInfo = props.banInfo;
   }
 
-  public toObject() {
+  public toModel() {
+    if (!this.createdAt || !this.banInfo) {
+      throw new Error('Incorrect model data');
+    }
+
     return {
       name: this.name,
       description: this.description,

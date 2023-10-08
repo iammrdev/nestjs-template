@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   Post,
   Put,
@@ -13,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CommandBus } from '@nestjs/cqrs';
 
 import { UsersService } from '../users';
 import {
@@ -23,11 +23,12 @@ import {
   GetUsersQuery,
 } from './sa.controller.interface';
 import { BasicGuard } from '../../app/auth-basic/basic.strategy';
-import { BlogsService } from '../blogs';
-import { CommandBus } from '@nestjs/cqrs';
-import { BanUserCommand } from './BanUserUseCase';
-import { BindUserWithBlogCommand } from './BindUserWithBlogUseCase';
-import { BanBlogCommand } from './BanBlogUseCase';
+import { BanUserCommand } from './use-case/BanUserUseCase';
+import { BindUserWithBlogCommand } from './use-case/BindUserWithBlogUseCase';
+import { BanBlogCommand } from './use-case/BanBlogUseCase';
+import { BlogsQueryRepository } from '../blogs/repository/blogs.query.repository';
+import { CreateUserCommand } from '../users/use-case/create-user-use-case';
+import { UsersQueryRepository } from '../users/repository/users.query.repository';
 
 @ApiTags('sa')
 @Controller('sa')
@@ -35,29 +36,22 @@ export class SuperAdminController {
   constructor(
     private commandBus: CommandBus,
     private readonly usersService: UsersService,
-    private readonly blogsService: BlogsService,
+    private readonly usersQueryRepository: UsersQueryRepository,
+    private readonly blogsQueryRepository: BlogsQueryRepository,
   ) {}
 
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
   @Post('users')
   @UseGuards(BasicGuard)
   async createUser(@Body() dto: CreateUserDto) {
-    const createdUser = await this.usersService.createUser(dto);
-
-    return {
-      id: createdUser.id,
-      login: createdUser.login,
-      email: createdUser.email,
-      createdAt: createdUser.createdAt,
-      banInfo: createdUser.banInfo,
-    };
+    return this.commandBus.execute(new CreateUserCommand(dto));
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
   @Get('users')
   @UseGuards(BasicGuard)
   async getUsers(@Query() query: GetUsersQuery) {
-    return this.usersService.getUsersWithBanInfo(query);
+    return this.usersQueryRepository.findAllWithBanInfo(query);
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
@@ -66,13 +60,7 @@ export class SuperAdminController {
   @UseGuards(BasicGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUser(@Param('id') id: string) {
-    const existedUser = await this.usersService.getUserById(id);
-
-    if (!existedUser) {
-      throw new NotFoundException('User is not found');
-    }
-
-    await this.usersService.deleteUserById(id);
+    await this.usersService.deleteUser(id);
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
@@ -87,7 +75,7 @@ export class SuperAdminController {
   @Get('blogs')
   @UseGuards(BasicGuard)
   async getBlogs(@Query() query: GetBlogsQuery) {
-    return this.blogsService.getExtendedBlogs(query);
+    return this.blogsQueryRepository.findAllExtended(query);
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })

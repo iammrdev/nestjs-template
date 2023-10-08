@@ -25,9 +25,9 @@ POST {{baseUrl}}/auth/registration HTTP/1.1
 Content-Type: application/json
 
 {
-  "login": "iashchuk2",
+  "login": "iashchuk",
   "password": "123456",
-  "email": "iashchuk2.dev@hmail.com"
+  "email": "221box@list.ru"
 }
 
 ###

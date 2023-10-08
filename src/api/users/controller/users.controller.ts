@@ -5,27 +5,35 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { CreateUserDto, GetUsersQuery } from './users.controller.interface';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreateUserDto, GetUsersQuery } from './users.controller.types';
 import { UsersService } from '../service/users.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { BasicGuard } from '../../../app/auth-basic/basic.strategy';
+import { CreateUserCommand } from '../use-case/create-user-use-case';
+import { UsersQueryRepository } from '../repository/users.query.repository';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private commandBus: CommandBus,
+    private readonly usersService: UsersService,
+    private readonly usersQueryRepository: UsersQueryRepository,
+  ) {}
 
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
   @Post()
   @UseGuards(BasicGuard)
   async createUser(@Body() dto: CreateUserDto) {
-    const createdUser = await this.usersService.createUser(dto);
+    const createdUser = await this.commandBus.execute(
+      new CreateUserCommand(dto),
+    );
 
     return {
       id: createdUser.id,
@@ -38,7 +46,7 @@ export class UsersController {
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
   @Get()
   async getUsers(@Query() query: GetUsersQuery) {
-    return this.usersService.getUsers(query);
+    return this.usersQueryRepository.findAllBase(query);
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
@@ -47,12 +55,6 @@ export class UsersController {
   @UseGuards(BasicGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUser(@Param('id') id: string) {
-    const existedUser = await this.usersService.getUserById(id);
-
-    if (!existedUser) {
-      throw new NotFoundException('User is not found');
-    }
-
-    await this.usersService.deleteUserById(id);
+    await this.usersService.deleteUser(id);
   }
 }

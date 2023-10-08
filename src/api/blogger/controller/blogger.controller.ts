@@ -32,9 +32,10 @@ import { JwtAccessTokenGuard } from '../../../app/auth-jwt-access/jwt-access-tok
 import { CurrentUser } from '../../../core/pipes/current-user.pipe';
 import { AccessTokenUserInfo } from '../../../app/auth-jwt-access/jwt-access-token.strategy';
 import { BlogsService } from '../../blogs';
-import { BanBlogUserCommand } from '../BanBlogUserUseCase';
-import { GetAllCommentsByUserCommand } from '../GetAllCommentsByUserUseCase';
-import { GetUsersByBlogCommand } from '../GetUsersByBlogUseCase';
+import { BanBlogUserCommand } from '../use-case/BanBlogUserUseCase';
+import { GetAllCommentsByUserCommand } from '../use-case/GetAllCommentsByUserUseCase';
+import { GetUsersByBlogCommand } from '../use-case/GetUsersByBlogUseCase';
+import { BlogsQueryRepository } from '../../blogs/repository/blogs.query.repository';
 
 @ApiTags('blogger')
 @Controller('blogger')
@@ -44,6 +45,7 @@ export class BloggerController {
     private readonly blogsService: BlogsService,
     @Inject(forwardRef(() => PostsService))
     private readonly postsService: PostsService,
+    private readonly blogsQueryRepository: BlogsQueryRepository,
   ) {}
 
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
@@ -63,7 +65,10 @@ export class BloggerController {
     @CurrentUser() user: AccessTokenUserInfo,
     @Query() query: GetBlogsQuery,
   ) {
-    return this.blogsService.getBlogsByOwner(query, user);
+    return this.blogsQueryRepository.findAllByOwnerWithPagination(
+      user.id,
+      query,
+    );
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
@@ -76,19 +81,7 @@ export class BloggerController {
     @Param('id') id: string,
     @Body() dto: UpdateBlogDto,
   ) {
-    const existedBlog = await this.blogsService.getExtendedBlogById(id);
-
-    if (!existedBlog) {
-      throw new NotFoundException('Blog is not found');
-    }
-
-    console.log({ user, existedBlog });
-
-    if (existedBlog.blogOwnerInfo?.userId !== user.id) {
-      throw new ForbiddenException('Forbidden action for this blog');
-    }
-
-    await this.blogsService.updateBlog(id, dto);
+    await this.blogsService.updateBlog(id, dto, { user });
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })
@@ -100,17 +93,7 @@ export class BloggerController {
     @CurrentUser() user: AccessTokenUserInfo,
     @Param('id') id: string,
   ) {
-    const existedBlog = await this.blogsService.getExtendedBlogById(id);
-
-    if (!existedBlog) {
-      throw new NotFoundException('Blog is not found');
-    }
-
-    if (existedBlog.blogOwnerInfo?.userId !== user.id) {
-      throw new ForbiddenException('Forbidden action for this blog');
-    }
-
-    await this.blogsService.deleteBlogById(id);
+    await this.blogsService.deleteBlog(id, { user });
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })

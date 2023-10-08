@@ -6,12 +6,13 @@
 
 ## Create new user
 POST {{baseUrl}}/users HTTP/1.1
+Authorization: Basic YWRtaW46cXdlcnR5
 Content-Type: application/json
 
 {
-  "login": "admin332e",
+  "login": "admin02",
   "password": "123456",
-  "email": "admin332e@local.io"
+  "email": "admin02@local.io"
 }
 
 ###
@@ -23,7 +24,7 @@ Content-Type: application/json
 ###
 
 ## Delete user by id
-DELETE {{baseUrl}}/users/646d650f4cac3af2bf0baadf HTTP/1.1
+DELETE {{baseUrl}}/users/655123edf839fa28c42b763b HTTP/1.1
 Authorization: Basic YWRtaW46cXdlcnR5
 
 ###

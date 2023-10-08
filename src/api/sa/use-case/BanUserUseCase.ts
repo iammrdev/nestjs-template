@@ -1,10 +1,10 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersRepository } from '../users/repository/users.repository';
 import { BadRequestException } from '@nestjs/common';
-import { UsersEntity } from '../users/service/users.entity';
-import { TokensRepository } from '../auth/repository/tokens.repository';
-import { PostsRepository } from '../posts/repository/posts.repository';
-import { CommentsRepository } from '../comments/repository/comments.repository';
+import { UsersRepository } from '../../users/repository/users.repository';
+import { UsersEntity } from '../../users/service/users.entity';
+import { TokensRepository } from '../../auth/repository/tokens.repository';
+import { PostsRepository } from '../../posts/repository/posts.repository';
+import { CommentsRepository } from '../../comments/repository/comments.repository';
 
 type CommandPayload = {
   userId: string;
@@ -36,17 +36,17 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
 
     const entity = new UsersEntity(existedUser).handleBan(command.payload);
 
-    await this.usersRepository.updateById(existedUser.id, entity);
+    await this.usersRepository.updateById(existedUser.id, entity.toModel());
 
     await this.tokensRepository.deleteById(existedUser.id);
 
-    await this.postsRepository.updateStatusByAuthorId(
+    await this.postsRepository.setStatusByAuthorId(
       existedUser.id,
-      command.payload.isBanned ? 'hidden' : 'active',
+      command.payload.isBanned ? 'hidden-by-ban' : 'active',
     );
-    await this.commentsRepository.updateStatusByAuthorId(
+    await this.commentsRepository.setStatusByAuthorId(
       existedUser.id,
-      command.payload.isBanned ? 'hidden' : 'active',
+      command.payload.isBanned ? 'hidden-by-ban' : 'active',
     );
   }
 }

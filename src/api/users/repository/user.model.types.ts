@@ -1,21 +1,24 @@
-type Confirmation = {
+import { Types } from 'mongoose';
+
+export type Confirmation = {
   status: boolean;
   code: string;
   expiration: Date;
   activation: Date | null;
 };
 
-type BanInfo = {
+export type BanInfo = {
   isBanned: boolean;
   banDate: Date | null;
   banReason: string | null;
 };
 
-export type AppUser = {
-  id: string;
+export type UserModelData = {
+  _id: Types.ObjectId;
   login: string;
+  passwordHash: string;
   email: string;
+  createdAt: Date;
   banInfo: BanInfo;
   confirmation: Confirmation;
-  createdAt: Date;
 };

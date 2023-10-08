@@ -6,16 +6,18 @@ import { BlogsModel, BlogsSchema } from '../blogs/repository/blogs.model';
 import { BlogsService } from '../blogs';
 import { BlogsRepository } from '../blogs/repository/blogs.repository';
 import { BloggerController } from './controller/blogger.controller';
-import { BanBlogUserUseCase } from './BanBlogUserUseCase';
+import { BanBlogUserUseCase } from './use-case/BanBlogUserUseCase';
 import { BlogUsersRepository } from '../blogs/repository/blog-users.repository';
 import {
   BlogUsersModel,
   BlogUsersSchema,
 } from '../blogs/repository/blog-users.model';
 import { UsersModule } from '../users';
-import { GetAllCommentsByUserUseCase } from './GetAllCommentsByUserUseCase';
+import { GetAllCommentsByUserUseCase } from './use-case/GetAllCommentsByUserUseCase';
 import { CommentsModule } from '../comments';
-import { GetUsersByBlogUseCase } from './GetUsersByBlogUseCase';
+import { GetUsersByBlogUseCase } from './use-case/GetUsersByBlogUseCase';
+import { BlogsQueryRepository } from '../blogs/repository/blogs.query.repository';
+import { BlogUsersQueryRepository } from '../blogs/repository/blog-users.query.repository';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { GetUsersByBlogUseCase } from './GetUsersByBlogUseCase';
   controllers: [BloggerController],
   providers: [
     BlogsRepository,
+    BlogsQueryRepository,
+    BlogUsersQueryRepository,
     BlogUsersRepository,
     BlogsService,
     BanBlogUserUseCase,

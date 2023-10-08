@@ -1,36 +1,12 @@
-import { Document, Types, now, Schema as MongooseSchema } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-
-type BlogOwnerInfo = {
-  userId: string;
-  userLogin: string;
-};
-
-type BanInfo = {
-  isBanned: boolean;
-  banDate: Date | null;
-};
-
-type BannedUser = {
-  id: string;
-  login: string;
-  banInfo: BanInfo;
-};
-
-export type DatabaseBlog = {
-  _id: Types.ObjectId;
-  name: string;
-  description: string;
-  websiteUrl: string;
-  isMembership: boolean;
-  blogOwnerInfo?: BlogOwnerInfo;
-  bannedUsers?: BannedUser[];
-  banInfo?: BanInfo;
-  createdAt: Date;
-};
+import { BanInfo, BlogsModelData, BlogOwnerInfo } from './blogs.model.types';
 
 @Schema({ collection: 'blogs' })
-export class BlogsModel extends Document implements Omit<DatabaseBlog, '_id'> {
+export class BlogsModel
+  extends Document
+  implements Omit<BlogsModelData, '_id'>
+{
   @Prop({ required: true })
   public name: string;
 
@@ -43,19 +19,13 @@ export class BlogsModel extends Document implements Omit<DatabaseBlog, '_id'> {
   @Prop({ required: true })
   public isMembership: boolean;
 
-  @Prop({ type: MongooseSchema.Types.Mixed })
+  @Prop({ type: MongooseSchema.Types.Mixed, default: null })
   public blogOwnerInfo: BlogOwnerInfo;
 
-  @Prop({ type: MongooseSchema.Types.Mixed })
-  public bannedUsers: BannedUser[];
-
-  @Prop({
-    type: MongooseSchema.Types.Mixed,
-    default: { isBanned: false, banDate: null },
-  })
+  @Prop({ type: MongooseSchema.Types.Mixed, required: true })
   public banInfo: BanInfo;
 
-  @Prop({ default: now() })
+  @Prop({ required: true })
   public createdAt: Date;
 }
 
