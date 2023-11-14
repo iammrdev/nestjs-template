@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { AnyObject, Model } from 'mongoose';
 import { PostsModel } from './posts.model';
-import { PostsEntity } from '../service/posts.entity';
 import { PostsModelData, Status } from './posts.model.types';
 import { AppPost } from '../../../types/posts';
 
@@ -46,10 +45,10 @@ export class PostsRepository {
 
   public async updateById(
     id: string,
-    postsEntity: PostsEntity,
+    postsEntity: Omit<PostsModelData, '_id'>,
   ): Promise<AppPost | null> {
     const dbPost = await this.postsModel
-      .findByIdAndUpdate(id, postsEntity.toModel(), { new: true })
+      .findByIdAndUpdate(id, postsEntity, { new: true })
       .exec();
 
     if (!dbPost) {

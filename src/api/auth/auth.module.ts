@@ -81,7 +81,7 @@ export class AuthModule {
     );
   }
 
-  async verifyIP(req: Request, res: Response, next: NextFunction) {
+  async verifyIP(req: Request, _res: Response, next: NextFunction) {
     const url = req.originalUrl;
     const now = Date.now();
 

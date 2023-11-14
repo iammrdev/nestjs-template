@@ -14,7 +14,6 @@ import { PostsRepository } from '../repository/posts.repository';
 import { PostsEntity, createPostEntity } from './posts.entity';
 import { UsersService } from '../../users';
 import { PostsQueryRepository } from '../repository/posts.query.repository';
-import { AppPost } from '../../../types/posts';
 
 @Injectable()
 export class PostsService {

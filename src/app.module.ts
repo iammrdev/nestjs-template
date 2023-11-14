@@ -9,7 +9,6 @@ import { SecurityModule } from './api/security/security.module';
 import { BloggerModule } from './api/blogger/blogger.module';
 import { SuperAdminModule } from './api/sa/sa.module';
 import { AuthModule } from './api/auth';
-import { CqrsModule } from '@nestjs/cqrs';
 
 const getMongoDbConfig = (): MongooseModuleAsyncOptions => {
   return {

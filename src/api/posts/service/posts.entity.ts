@@ -173,7 +173,7 @@ export class PostsEntity {
     return this;
   }
 
-  public generateExtendLikesInfo = () => {
+  public generateExtendedLikesInfo = () => {
     return {
       likesCount: this.likesInfo.likes.length,
       dislikesCount: this.likesInfo.dislikes.length,
@@ -223,9 +223,8 @@ export class PostsEntity {
       blogId: this.blogId,
       blogName: this.blogName,
       content: this.content,
-      status: this.status,
       createdAt: this.createdAt,
-      extendLikesInfo: this.generateExtendLikesInfo(),
+      extendedLikesInfo: this.generateExtendedLikesInfo(),
     };
   }
 }

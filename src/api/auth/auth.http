@@ -37,7 +37,7 @@ POST {{baseUrl}}/auth/registration-confirmation HTTP/1.1
 Content-Type: application/json
 
 {
-  "code": "a22b63bd-16f3-45d3-bfa4-ff7e9c384001"
+  "code": "b8dee5b0-781f-4b34-b124-2952a73a455d"
 }
 
 ### 
@@ -47,7 +47,7 @@ POST {{baseUrl}}/auth/registration-email-resending HTTP/1.1
 Content-Type: application/json
 
 {
-  "email": "iashchuk@outlook.com"
+  "email": "221box@list.ru"
 }
 
 ###
