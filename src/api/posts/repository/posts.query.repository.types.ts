@@ -1,4 +1,5 @@
-import { PostsModelData } from './posts.model.types';
+import { PaginationList } from '../../../types/common';
+import { AppPost } from '../../../types/posts';
 
 export type GetPostsParams = {
   sortBy: string;
@@ -7,15 +8,8 @@ export type GetPostsParams = {
   pageSize: number;
 };
 
-export type PostsQueryData = {
-  id: string;
-  title: string;
-  shortDescription: string;
-  content: string;
-  blogId: string;
-  blogName: string;
-  authorId?: string;
-  status: 'active' | 'hidden-by-ban';
-  createdAt: Date;
-  likesInfo: PostsModelData['likesInfo'];
-};
+export type FindAllPostsResponse = PaginationList<AppPost[]>;
+
+export type FindAllPostsByBlogResponse = PaginationList<AppPost[]>;
+
+export type FindAllPostsByBlogsResponse = AppPost[];

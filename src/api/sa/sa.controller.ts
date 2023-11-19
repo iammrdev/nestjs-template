@@ -13,22 +13,25 @@ import {
 } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CommandBus } from '@nestjs/cqrs';
-
 import { UsersService } from '../users';
-import {
-  BanBlogDto,
-  BanUserDto,
-  CreateUserDto,
-  GetBlogsQuery,
-  GetUsersQuery,
-} from './sa.controller.interface';
 import { BasicGuard } from '../../app/auth-basic/basic.strategy';
 import { BanUserCommand } from './use-case/BanUserUseCase';
 import { BindUserWithBlogCommand } from './use-case/BindUserWithBlogUseCase';
 import { BanBlogCommand } from './use-case/BanBlogUseCase';
 import { BlogsQueryRepository } from '../blogs/repository/blogs.query.repository';
-import { CreateUserCommand } from '../users/use-case/create-user-use-case';
+import {
+  CreateUserCommand,
+  CreateUserUseCaseResult,
+} from '../users/use-case/create-user-use-case';
 import { UsersQueryRepository } from '../users/repository/users.query.repository';
+import {
+  PutBanByBlogDto,
+  PutBanByUserDto,
+  PostUsersDto,
+  GetBlogsQuery,
+  GetUsersQuery,
+} from './sa.controller.dto';
+import { GetBlogsRdo, GetUsersRdo, PostUsersRdo } from './sa.controller.rdo';
 
 @ApiTags('sa')
 @Controller('sa')
@@ -43,14 +46,18 @@ export class SuperAdminController {
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
   @Post('users')
   @UseGuards(BasicGuard)
-  async createUser(@Body() dto: CreateUserDto) {
-    return this.commandBus.execute(new CreateUserCommand(dto));
+  async createUser(@Body() dto: PostUsersDto): Promise<PostUsersRdo> {
+    const result: CreateUserUseCaseResult = await this.commandBus.execute(
+      new CreateUserCommand(dto),
+    );
+
+    return result;
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
   @Get('users')
   @UseGuards(BasicGuard)
-  async getUsers(@Query() query: GetUsersQuery) {
+  async getUsers(@Query() query: GetUsersQuery): Promise<GetUsersRdo> {
     return this.usersQueryRepository.findAllWithBanInfo(query);
   }
 
@@ -59,7 +66,7 @@ export class SuperAdminController {
   @Delete('users/:id')
   @UseGuards(BasicGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteUser(@Param('id') id: string) {
+  async deleteUser(@Param('id') id: string): Promise<void> {
     await this.usersService.deleteUser(id);
   }
 
@@ -67,15 +74,18 @@ export class SuperAdminController {
   @Put('users/:id/ban')
   @UseGuards(BasicGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async banUser(@Param('id') id: string, @Body() dto: BanUserDto) {
+  async banUser(
+    @Param('id') id: string,
+    @Body() dto: PutBanByUserDto,
+  ): Promise<void> {
     await this.commandBus.execute(new BanUserCommand({ userId: id, ...dto }));
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
   @Get('blogs')
   @UseGuards(BasicGuard)
-  async getBlogs(@Query() query: GetBlogsQuery) {
-    return this.blogsQueryRepository.findAllExtended(query);
+  async getBlogs(@Query() query: GetBlogsQuery): Promise<GetBlogsRdo> {
+    return this.blogsQueryRepository.findAllBlogsExtended(query);
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
@@ -85,7 +95,7 @@ export class SuperAdminController {
   async bindBlogByUser(
     @Param('blogId') blogId: string,
     @Param('userId') userId: string,
-  ) {
+  ): Promise<void> {
     await this.commandBus.execute(
       new BindUserWithBlogCommand({ userId, blogId }),
     );
@@ -95,7 +105,10 @@ export class SuperAdminController {
   @Put('blogs/:id/ban')
   @UseGuards(BasicGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async banBlog(@Param('id') id: string, @Body() dto: BanBlogDto) {
+  async banBlog(
+    @Param('id') id: string,
+    @Body() dto: PutBanByBlogDto,
+  ): Promise<void> {
     await this.commandBus.execute(new BanBlogCommand({ blogId: id, ...dto }));
   }
 }

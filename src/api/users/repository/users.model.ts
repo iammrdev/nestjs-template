@@ -1,9 +1,12 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { BanInfo, Confirmation, UserModelData } from './user.model.types';
+import { BanInfo, Confirmation, UsersModelData } from './user.model.types';
 
 @Schema({ collection: 'users' })
-export class UsersModel extends Document implements Omit<UserModelData, '_id'> {
+export class UsersModel
+  extends Document
+  implements Omit<UsersModelData, '_id'>
+{
   @Prop({ required: true })
   public login: string;
 

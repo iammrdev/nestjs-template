@@ -18,14 +18,15 @@ import {
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PostsService } from '../service/posts.service';
 import {
-  CreateCommentDto,
-  CreatePostDto,
-  GetPostsQuery,
-  UpdatePostDto,
-  UpdatePostLikeStatusDto,
-} from './posts.controller.interface';
+  PostCommentsByIdDto,
+  PostDto,
+  GetQuery,
+  PutByIdDto,
+  PutLikeStatusByIdDto,
+  GetCommentsByIdQuery,
+} from './posts.controller.dto';
 import { BlogsService } from '../../blogs';
-import { CommentsService, GetCommentsQuery } from '../../comments';
+import { CommentsService } from '../../comments';
 import { BasicGuard } from '../../../app/auth-basic/basic.strategy';
 import { JwtAccessTokenGuard } from '../../../app/auth-jwt-access/jwt-access-token.guard';
 import { CurrentUser } from '../../../core/pipes/current-user.pipe';
@@ -33,6 +34,15 @@ import { CurrentUserId } from '../../../core/pipes/current-user-id.pipe';
 import { UsersService } from '../../users';
 import { JwtAccessTokenInfo } from '../../../app/auth-jwt-access/jwt-access-token.info';
 import { AccessTokenUserInfo } from '../../../app/auth-jwt-access/jwt-access-token.strategy';
+import { BloggersService } from '../../bloggers/service/bloggers.service';
+import {
+  GetByIdRdo,
+  GetCommentsByIdRdo,
+  GetRdo,
+  PostCommentsByIdRdo,
+  PostRdo,
+  PutLikeStatusByIdRdo,
+} from './posts.controller.rdo';
 
 @ApiTags('posts')
 @Controller('posts')
@@ -41,6 +51,7 @@ export class PostsController {
     private readonly postsService: PostsService,
     @Inject(forwardRef(() => BlogsService))
     private readonly blogsService: BlogsService,
+    private readonly bloggersService: BloggersService,
     private readonly commentsService: CommentsService,
     private readonly usersService: UsersService,
   ) {}
@@ -48,7 +59,7 @@ export class PostsController {
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Created' })
   @Post()
   @UseGuards(BasicGuard)
-  async createPost(@Body() dto: CreatePostDto) {
+  async createPost(@Body() dto: PostDto): Promise<PostRdo> {
     const existedBlog = await this.blogsService.getBlogById(dto.blogId);
 
     if (!existedBlog) {
@@ -66,8 +77,8 @@ export class PostsController {
   @UseGuards(JwtAccessTokenInfo)
   async getPosts(
     @CurrentUser() user: AccessTokenUserInfo,
-    @Query() query: GetPostsQuery,
-  ) {
+    @Query() query: GetQuery,
+  ): Promise<GetRdo> {
     return this.postsService.getPosts(query, { user });
   }
 
@@ -78,7 +89,7 @@ export class PostsController {
   async getPost(
     @CurrentUser() user: AccessTokenUserInfo,
     @Param('id') id: string,
-  ) {
+  ): Promise<GetByIdRdo> {
     const existedPost = await this.postsService.getPostById(id, { user });
 
     if (!existedPost) {
@@ -93,7 +104,10 @@ export class PostsController {
   @Put(':id')
   @UseGuards(BasicGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async updatePost(@Param('id') id: string, @Body() dto: UpdatePostDto) {
+  async updatePost(
+    @Param('id') id: string,
+    @Body() dto: PutByIdDto,
+  ): Promise<void> {
     const existedBlog = await this.blogsService.getBlogById(dto.blogId);
 
     if (!existedBlog) {
@@ -113,8 +127,8 @@ export class PostsController {
   async updatePostLikeStatus(
     @CurrentUserId() currentUserId: string,
     @Param('id') id: string,
-    @Body() dto: UpdatePostLikeStatusDto,
-  ) {
+    @Body() dto: PutLikeStatusByIdDto,
+  ): Promise<PutLikeStatusByIdRdo> {
     const existedUser = await this.usersService.getUserById(currentUserId);
 
     if (!existedUser) {
@@ -138,7 +152,7 @@ export class PostsController {
   @Delete(':id')
   @UseGuards(BasicGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deletePost(@Param('id') id: string) {
+  async deletePost(@Param('id') id: string): Promise<void> {
     await this.postsService.deletePostById(id);
   }
 
@@ -148,8 +162,8 @@ export class PostsController {
   async createCommenyByPost(
     @CurrentUserId() currentUserId: string,
     @Param('id') id: string,
-    @Body() dto: CreateCommentDto,
-  ) {
+    @Body() dto: PostCommentsByIdDto,
+  ): Promise<PostCommentsByIdRdo> {
     const existedUser = await this.usersService.getUserById(currentUserId);
 
     if (!existedUser) {
@@ -162,7 +176,7 @@ export class PostsController {
       throw new NotFoundException('Post is not found');
     }
 
-    const isBanned = await this.blogsService.checkUserBanByBlog(
+    const isBanned = await this.bloggersService.checkUserBanByBlog(
       existedPost.blogId,
       currentUserId,
     );
@@ -184,14 +198,14 @@ export class PostsController {
   async getPostsByBlog(
     @CurrentUserId() userId: string,
     @Param('id') id: string,
-    @Query() query: GetCommentsQuery,
-  ) {
+    @Query() query: GetCommentsByIdQuery,
+  ): Promise<GetCommentsByIdRdo> {
     const existedPost = await this.postsService.getPostById(id);
 
     if (!existedPost) {
       throw new NotFoundException('Post is not found');
     }
 
-    return this.commentsService.getCommentByPost(id, query, { userId });
+    return this.commentsService.getCommentsByPost(id, query, { userId });
   }
 }

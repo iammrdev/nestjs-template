@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { DataRecovery, RecoveryModel } from './recovery.model';
-import { RecoveryEntity } from '../service/auth.service.interface';
+import { RecoveryModel } from './recovery.model';
+import { RecoveryModelData } from './recovery.model.types';
 
 @Injectable()
 export class RecoveryRepository {
@@ -11,26 +11,14 @@ export class RecoveryRepository {
     private readonly recoveryModel: Model<RecoveryModel>,
   ) {}
 
-  private buildRecovery(dbRecovery: DataRecovery) {
-    return dbRecovery;
+  public async create(
+    recoveryModelData: Omit<RecoveryModelData, '_id'>,
+  ): Promise<RecoveryModelData> {
+    return this.recoveryModel.create(recoveryModelData);
   }
 
-  public async create(recoveryEntity: RecoveryEntity): Promise<DataRecovery> {
-    const dbRecovery = await this.recoveryModel.create(recoveryEntity);
-
-    return this.buildRecovery(dbRecovery);
-  }
-
-  public async findById(id: string): Promise<DataRecovery | null> {
-    const dbRecovery = await this.recoveryModel.findOne({ _id: id }).exec();
-
-    return dbRecovery && this.buildRecovery(dbRecovery);
-  }
-
-  public async findByCode(code: string): Promise<DataRecovery | null> {
-    const dbRecovery = await this.recoveryModel.findOne({ code }).exec();
-
-    return dbRecovery && this.buildRecovery(dbRecovery);
+  public async findByCode(code: string): Promise<RecoveryModelData | null> {
+    return this.recoveryModel.findOne({ code }).exec();
   }
 
   public async deleteAll(): Promise<number> {

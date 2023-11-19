@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { AnyObject, Model } from 'mongoose';
-import { Blog, BlogExtended } from '../../../types/blogs';
+import { AppBlog, AppBlogExtended } from '../../../types/blogs';
 import { Pagination } from '../../../core/pagination';
-import { PaginationList } from '../../../types/common';
 import { BlogsModelData } from './blogs.model.types';
-import { GetBlogsParams } from './blogs.query.repository.types';
+import {
+  FindAllBlogsByUserResponse,
+  FindAllBlogsByUserWithPaginationResponse,
+  FindAllBlogsExtendedResponse,
+  FindAllBlogsParams,
+  FindAllBlogsResponse,
+} from './blogs.query.repository.types';
 import { BlogsModel } from './blogs.model';
-
-type FindAllByUserReturnType<T> = T extends GetBlogsParams
-  ? PaginationList<Blog[]>
-  : Blog[];
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -19,7 +20,7 @@ export class BlogsQueryRepository {
     private readonly blogsModel: Model<BlogsModel>,
   ) {}
 
-  private buildBlog(dataBlog: BlogsModelData): Blog {
+  private buildBlog(dataBlog: BlogsModelData): AppBlog {
     return {
       id: dataBlog._id.toString(),
       name: dataBlog.name,
@@ -30,7 +31,7 @@ export class BlogsQueryRepository {
     };
   }
 
-  private buildExtendedBlog(dataBlog: BlogsModelData): BlogExtended {
+  private buildExtendedBlog(dataBlog: BlogsModelData): AppBlogExtended {
     return {
       ...this.buildBlog(dataBlog),
       blogOwnerInfo: dataBlog.blogOwnerInfo,
@@ -38,7 +39,9 @@ export class BlogsQueryRepository {
     };
   }
 
-  private buildPaginationFilter(params: GetBlogsParams) {
+  private buildPaginationFilter(
+    params: FindAllBlogsParams,
+  ): Record<string, any> {
     if (!params.searchNameTerm) {
       return {};
     }
@@ -54,7 +57,7 @@ export class BlogsQueryRepository {
       sortDirection: 'asc' | 'desc';
     },
     filter: AnyObject,
-  ) {
+  ): Promise<Pagination<BlogsModelData>> {
     const totalCount = await this.blogsModel.countDocuments(filter).exec();
 
     const pagination = new Pagination<BlogsModelData>({
@@ -75,9 +78,9 @@ export class BlogsQueryRepository {
     return pagination;
   }
 
-  public async findAll(
-    params: GetBlogsParams,
-  ): Promise<PaginationList<Blog[]>> {
+  public async findAllBlogs(
+    params: FindAllBlogsParams,
+  ): Promise<FindAllBlogsResponse> {
     const filter = this.buildPaginationFilter(params);
 
     Object.assign(filter, { 'banInfo.isBanned': { $ne: true } });
@@ -87,9 +90,9 @@ export class BlogsQueryRepository {
     return pagination.toView(this.buildBlog);
   }
 
-  public async findAllExtended(
-    params: GetBlogsParams,
-  ): Promise<PaginationList<BlogExtended[]>> {
+  public async findAllBlogsExtended(
+    params: FindAllBlogsParams,
+  ): Promise<FindAllBlogsExtendedResponse> {
     const filter = this.buildPaginationFilter(params);
 
     const pagination = await this.buildPagination(params, filter);
@@ -97,7 +100,9 @@ export class BlogsQueryRepository {
     return pagination.toView(this.buildExtendedBlog.bind(this));
   }
 
-  public async findAllByOwner(userId: string): Promise<Blog[]> {
+  public async findAllBlogsByUser(
+    userId: string,
+  ): Promise<FindAllBlogsByUserResponse> {
     const filter = { 'blogOwnerInfo.userId': userId };
 
     const dbBlogs = await this.blogsModel.find(filter).exec();
@@ -105,31 +110,10 @@ export class BlogsQueryRepository {
     return dbBlogs.map(this.buildBlog);
   }
 
-  public async findAllByUser<T extends GetBlogsParams | undefined = undefined>(
+  public async findAllByUserWithPagination(
     userId: string,
-    params?: T,
-  ): Promise<FindAllByUserReturnType<T>> {
-    const filter = { 'blogOwnerInfo.userId': userId };
-
-    if (!params) {
-      const dbBlogs = await this.blogsModel.find(filter).exec();
-
-      return dbBlogs.map(this.buildBlog) as FindAllByUserReturnType<T>;
-    }
-
-    const paginationFilter = this.buildPaginationFilter(params);
-
-    Object.assign(filter, paginationFilter);
-
-    const pagination = await this.buildPagination(params, filter);
-
-    return pagination.toView(this.buildBlog) as FindAllByUserReturnType<T>;
-  }
-
-  public async findAllByOwnerWithPagination(
-    userId: string,
-    params: GetBlogsParams,
-  ): Promise<PaginationList<Blog[]>> {
+    params: FindAllBlogsParams,
+  ): Promise<FindAllBlogsByUserWithPaginationResponse> {
     const filter = { 'blogOwnerInfo.userId': userId };
     const paginationFilter = this.buildPaginationFilter(params);
 

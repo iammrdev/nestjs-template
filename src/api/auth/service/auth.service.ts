@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -11,8 +10,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { TokensRepository } from '../repository/tokens.repository';
 import { RecoveryRepository } from '../repository/recovery.repository';
 import { JWTPayload, JWTPayloadInfo } from '../../../types/auth';
-import { GenerateTokenDto, RefreshTokenEntity } from './auth.service.interface';
-import { Token } from '../../../types/tokens';
+import { GenerateTokensParams } from './auth.service.types';
+import { AppToken } from '../../../types/tokens';
 
 @Injectable()
 export class AuthService {
@@ -23,31 +22,29 @@ export class AuthService {
     private readonly recoveryRepository: RecoveryRepository,
   ) {}
 
-  private async getAccessTokenInfo(token: string) {
-    return this.jwtAccessService.decode(token) as JWTPayloadInfo;
-  }
-
-  private async getRefreshTokenInfo(token: string) {
+  private async getRefreshTokenInfo(token: string): Promise<JWTPayloadInfo> {
     return this.jwtRefreshService.decode(token) as JWTPayloadInfo;
   }
 
-  async generateAuthInfo(dto: GenerateTokenDto) {
+  async generateTokens(
+    params: GenerateTokensParams,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload: JWTPayload = {
-      id: dto.userId,
-      login: dto.login,
-      email: dto.email,
-      deviceId: dto.deviceId || uuidv4(),
+      id: params.userId,
+      login: params.login,
+      email: params.email,
+      deviceId: params.deviceId || uuidv4(),
     };
 
     const accessToken = await this.jwtAccessService.signAsync(payload);
     const refreshToken = await this.jwtRefreshService.signAsync(payload);
     const refreshTokenInfo = await this.getRefreshTokenInfo(refreshToken);
 
-    const refreshTokenEntity: RefreshTokenEntity = {
+    const refreshTokenEntity = {
       userId: payload.id,
       deviceId: payload.deviceId,
-      ip: dto.ip,
-      title: dto.title,
+      ip: params.ip,
+      title: params.title,
       iat: new Date(refreshTokenInfo.iat * 1000),
       exp: new Date(refreshTokenInfo.exp * 1000),
       refreshToken,
@@ -58,26 +55,10 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async getUserSessionByToken(token: string): Promise<Token | null> {
-    const tokenInfo = await this.getAccessTokenInfo(token);
-
-    return this.tokensRepository.findByUserId(tokenInfo.id);
-  }
-
-  async getUserDevices(token: string): Promise<Token[]> {
+  async getUserDevices(token: string): Promise<AppToken[]> {
     const tokenInfo = await this.getRefreshTokenInfo(token);
 
     return this.tokensRepository.findAllByUserId(tokenInfo.id);
-  }
-
-  async terminateDevices(token: string): Promise<void> {
-    const tokenInfo = await this.getRefreshTokenInfo(token);
-
-    await this.tokensRepository.deleteByUser(tokenInfo.id, tokenInfo.deviceId);
-  }
-
-  async terminateDevicesByUserId(userId: string): Promise<void> {
-    await this.tokensRepository.deleteByUser(userId);
   }
 
   async terminateDevice(token: string, deviceId: string): Promise<void> {
@@ -88,7 +69,7 @@ export class AuthService {
     );
 
     if (!tokenByDeviceId) {
-      throw new NotFoundException('NotFoundE');
+      throw new NotFoundException('Token not found');
     }
 
     if (tokenInfo.id !== tokenByDeviceId?.userId) {
@@ -98,21 +79,14 @@ export class AuthService {
     await this.tokensRepository.deleteById(tokenByDeviceId.id);
   }
 
-  async checkActiveSessions(token?: string): Promise<void> {
-    if (!token) {
-      return;
-    }
+  async terminateDevices(token: string): Promise<void> {
+    const tokenInfo = await this.getRefreshTokenInfo(token);
 
-    const [, accessToken] = token.split(' ');
-    const userSession = await this.getUserSessionByToken(accessToken);
-
-    if (userSession) {
-      throw new BadRequestException('User has active session');
-    }
+    await this.tokensRepository.deleteByUser(tokenInfo.id, tokenInfo.deviceId);
   }
 
-  async deleteAll() {
-    return Promise.all([
+  async deleteAll(): Promise<void> {
+    await Promise.all([
       this.tokensRepository.deleteAll(),
       this.recoveryRepository.deleteAll(),
     ]);

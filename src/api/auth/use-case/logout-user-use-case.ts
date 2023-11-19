@@ -11,6 +11,8 @@ type CommandPayload = {
   };
 };
 
+export type LogoutUserUseCaseResult = void;
+
 export class LogoutUserCommand {
   constructor(public payload: CommandPayload) {}
 }
@@ -19,7 +21,7 @@ export class LogoutUserCommand {
 export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
   constructor(private readonly tokensRepository: TokensRepository) {}
 
-  async execute(command: LogoutUserCommand) {
+  async execute(command: LogoutUserCommand): Promise<LogoutUserUseCaseResult> {
     const userInfo = command.payload.userInfo;
     const tokenInfo = await this.tokensRepository.findByToken(
       userInfo.refreshToken,

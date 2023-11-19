@@ -6,21 +6,14 @@ import { UsersRepository } from '../repository/users.repository';
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async getUsersBanned() {
-    return this.usersRepository.findAllBannedIds();
-  }
-
   async getUserById(id: string): Promise<AppUser | null> {
     return this.usersRepository.findById(id);
   }
 
-  async getUserByEmail(email: string): Promise<AppUser | null> {
-    return this.usersRepository.findByEmail(email);
+  async getBannedUsersIds(): Promise<string[]> {
+    return this.usersRepository.getBannedIds();
   }
 
-  async getUserByConfirmationCode(code: string): Promise<AppUser | null> {
-    return this.usersRepository.findByConfirmationCode(code);
-  }
   async deleteUser(id: string): Promise<void> {
     const existedUser = await this.getUserById(id);
 

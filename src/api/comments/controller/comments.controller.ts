@@ -14,12 +14,14 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CommentsService } from '../service/comments.service';
 import { JwtAccessTokenGuard } from '../../../app/auth-jwt-access/jwt-access-token.guard';
 import { CurrentUserId } from '../../../core/pipes/current-user-id.pipe';
-import {
-  UpdateCommentDto,
-  UpdateCommentLikeStatusDto,
-} from './comments.controller.interface';
 import { UsersService } from '../../users';
 import { JwtAccessTokenInfo } from '../../../app/auth-jwt-access/jwt-access-token.info';
+import { PutByIdDto, PutLikeStatusByIdDto } from './comments.controller.dto';
+import {
+  GetByIdRdo,
+  PutByIdRdo,
+  PutLikeStatusByIdRdo,
+} from './comments.controller.rdo';
 
 @ApiTags('comments')
 @Controller('comments')
@@ -33,7 +35,10 @@ export class CommentsController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Not found' })
   @Get(':id')
   @UseGuards(JwtAccessTokenInfo)
-  async getComment(@CurrentUserId() userId: string, @Param('id') id: string) {
+  async getComment(
+    @CurrentUserId() userId: string,
+    @Param('id') id: string,
+  ): Promise<GetByIdRdo> {
     const existedComment = await this.commentsService.getCommentById(id, {
       userId,
     });
@@ -52,8 +57,8 @@ export class CommentsController {
   async updateComment(
     @CurrentUserId() currentUserId: string,
     @Param('id') id: string,
-    @Body() dto: UpdateCommentDto,
-  ) {
+    @Body() dto: PutByIdDto,
+  ): Promise<PutByIdRdo> {
     const existedUser = await this.usersService.getUserById(currentUserId);
 
     if (!existedUser) {
@@ -74,7 +79,7 @@ export class CommentsController {
   async deleteComment(
     @CurrentUserId() userId: string,
     @Param('id') id: string,
-  ) {
+  ): Promise<void> {
     await this.commentsService.deleteCommentById(id, { userId });
   }
 
@@ -85,8 +90,8 @@ export class CommentsController {
   async updateCommentLikeStatus(
     @CurrentUserId() currentUserId: string,
     @Param('id') id: string,
-    @Body() dto: UpdateCommentLikeStatusDto,
-  ) {
+    @Body() dto: PutLikeStatusByIdDto,
+  ): Promise<PutLikeStatusByIdRdo> {
     const existedUser = await this.usersService.getUserById(currentUserId);
 
     if (!existedUser) {

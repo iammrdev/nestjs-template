@@ -1,6 +1,7 @@
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { Mailer } from '../../libs/mailer';
 
-const buildConfirmationMessage = (code: string) => {
+const buildConfirmationMessage = (code: string): string => {
   return `
         <h1>Thank for your registration</h1>\n
         <p>To finish registration please follow the link below:\n
@@ -9,7 +10,7 @@ const buildConfirmationMessage = (code: string) => {
  `;
 };
 
-const buildRecoveryMessage = (code: string) => {
+const buildRecoveryMessage = (code: string): string => {
   return `
         <h1>Password recovery</h1>
         <p>To finish password recovery please follow the link below:
@@ -23,7 +24,10 @@ type EmailParams = {
   code: string;
 };
 
-const sendEmail = async ({ email, code }: EmailParams) => {
+const sendEmail = async ({
+  email,
+  code,
+}: EmailParams): Promise<SMTPTransport.SentMessageInfo> => {
   return Mailer.send({
     email: email,
     subject: 'Confirm email',
@@ -31,7 +35,10 @@ const sendEmail = async ({ email, code }: EmailParams) => {
   });
 };
 
-const sendRecoveryEmail = async ({ email, code }: EmailParams) => {
+const sendRecoveryEmail = async ({
+  email,
+  code,
+}: EmailParams): Promise<SMTPTransport.SentMessageInfo> => {
   return Mailer.send({
     email: email,
     subject: 'Recovery password',

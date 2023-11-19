@@ -2,7 +2,7 @@ import { genSalt, hash, compare } from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import add from 'date-fns/add';
 import { SALT_ROUNDS } from './users.service.constants';
-import { AppUser } from '../../../types/users';
+import { UsersModelData } from '../repository/user.model.types';
 
 type Confirmation = {
   status: boolean;
@@ -27,6 +27,15 @@ type Props = {
   passwordHash?: string;
 };
 
+export type UserView = {
+  id: string;
+  login: string;
+  email: string;
+  banInfo: BanInfo;
+  confirmation: Confirmation;
+  createdAt: Date;
+};
+
 export class UsersEntity {
   public login: string;
   public email: string;
@@ -41,7 +50,7 @@ export class UsersEntity {
     this.fillEntity(props);
   }
 
-  public setId(id: string) {
+  public setId(id: string): UsersEntity {
     this.id = id;
 
     return this;
@@ -58,7 +67,7 @@ export class UsersEntity {
     return compare(password, this.passwordHash);
   }
 
-  public generateConfirmation() {
+  public generateConfirmation(): UsersEntity {
     this.confirmation = {
       status: false,
       code: uuidv4(),
@@ -69,7 +78,7 @@ export class UsersEntity {
     return this;
   }
 
-  public activate() {
+  public activate(): UsersEntity {
     if (!this.confirmation) {
       throw new Error('No confirmation by user');
     }
@@ -83,7 +92,7 @@ export class UsersEntity {
     return this;
   }
 
-  public handleBan(newBanInfo: Omit<BanInfo, 'banDate'>) {
+  public handleBan(newBanInfo: Omit<BanInfo, 'banDate'>): UsersEntity {
     this.banInfo = {
       isBanned: newBanInfo.isBanned,
       banReason: newBanInfo.isBanned ? newBanInfo.banReason : null,
@@ -93,7 +102,7 @@ export class UsersEntity {
     return this;
   }
 
-  public fillEntity(props: Props) {
+  public fillEntity(props: Props): void {
     this.id = props.id;
     this.login = props.login;
     this.email = props.email;
@@ -103,7 +112,7 @@ export class UsersEntity {
     this.passwordHash = props.passwordHash;
   }
 
-  public toModel() {
+  public toModel(): Omit<UsersModelData, '_id'> {
     if (!this.passwordHash || !this.confirmation) {
       throw new Error('Incorrect model data');
     }
@@ -118,7 +127,7 @@ export class UsersEntity {
     };
   }
 
-  public toView(): AppUser {
+  public toView(): UserView {
     if (!this.id || !this.confirmation) {
       throw new Error('Incorrect view data');
     }
@@ -140,7 +149,9 @@ type CreateUserEntityParams = {
   email: string;
 };
 
-export const createUserEntity = async (params: CreateUserEntityParams) =>
+export const createUserEntity = async (
+  params: CreateUserEntityParams,
+): Promise<UsersEntity> =>
   new UsersEntity({
     ...params,
     banInfo: {

@@ -4,7 +4,7 @@
 @paginationParams = 
 
 
-## Create new user
+## Add new user to the system
 POST {{baseUrl}}/users HTTP/1.1
 Authorization: Basic YWRtaW46cXdlcnR5
 Content-Type: application/json
@@ -17,13 +17,13 @@ Content-Type: application/json
 
 ###
 
-## Get user list with pagination
+## Returns all users
 GET {{baseUrl}}/users?{{paginationParams}} HTTP/1.1
 Content-Type: application/json
 
 ###
 
-## Delete user by id
+## Delete user specified by id
 DELETE {{baseUrl}}/users/655123edf839fa28c42b763b HTTP/1.1
 Authorization: Basic YWRtaW46cXdlcnR5
 

@@ -1,3 +1,5 @@
+import { BlogsModelData } from '../repository/blogs.model.types';
+
 type BlogOwnerInfo = {
   userId: string;
   userLogin: string;
@@ -31,7 +33,7 @@ export class BlogsEntity {
     this.fillEntity(props);
   }
 
-  public fillEntity(props: Props) {
+  public fillEntity(props: Props): void {
     this.name = props.name;
     this.description = props.description;
     this.isMembership = props.isMembership || false;
@@ -41,7 +43,7 @@ export class BlogsEntity {
     this.banInfo = props.banInfo;
   }
 
-  public toModel() {
+  public toModel(): Omit<BlogsModelData, '_id'> {
     if (!this.createdAt || !this.banInfo) {
       throw new Error('Incorrect model data');
     }

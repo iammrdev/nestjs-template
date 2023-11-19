@@ -5,52 +5,54 @@ import {
 } from '@nestjs/common';
 import { CommentsRepository } from '../repository/comments.repository';
 import {
-  CreateCommentDto,
-  GetCommentsQuery,
-  UpdateCommentDto,
-  UpdateCommentLikeStatusDto,
-} from './comments.service.interface';
-import { Comment } from '../../../types/comments';
-import { CommentsEntity } from './comments.entity';
+  CreateCommentParams,
+  GetCommentsParams,
+  UpdateCommentParams,
+  UpdateCommentLikeStatusParams,
+} from './comments.service.types';
+import {
+  CommentView,
+  CommentsEntity,
+  createCommentsEntity,
+} from './comments.entity';
 import { UsersService } from '../../users';
+import { CommentsQueryRepository } from '../repository/comments.query.repository';
+import { PaginationList } from 'src/types/common';
 
 @Injectable()
 export class CommentsService {
   constructor(
     private readonly commentsRepository: CommentsRepository,
+    private readonly commentsQueryRepository: CommentsQueryRepository,
     private readonly usersService: UsersService,
   ) {}
 
   async createCommentByPost(
     postId: string,
-    dto: CreateCommentDto,
-  ): Promise<Comment> {
-    const entity = new CommentsEntity({
-      content: dto.content,
+    params: CreateCommentParams,
+  ): Promise<CommentView> {
+    const entity = createCommentsEntity({
+      content: params.content,
       postId,
-      commentatorInfo: {
-        userId: dto.userId,
-        userLogin: dto.userLogin,
-      },
-      likesInfo: {
-        dislikes: [],
-        likes: [],
-      },
-      createdAt: new Date(),
+      userId: params.userId,
+      userLogin: params.userLogin,
     });
 
-    const { id } = await this.commentsRepository.create(entity);
+    const { id } = await this.commentsRepository.create(entity.toModel());
 
     return entity.setId(id).toView();
   }
 
-  async getCommentByPost(
+  async getCommentsByPost(
     postId: string,
-    query: GetCommentsQuery,
-    { userId }: { userId?: string },
-  ) {
-    const comments = await this.commentsRepository.findAllByPost(postId, query);
-    const bannedUsersIds = await this.usersService.getUsersBanned();
+    query: GetCommentsParams,
+    { userId }: { userId: string },
+  ): Promise<PaginationList<CommentView[]>> {
+    const comments = await this.commentsQueryRepository.findAllByPost(
+      postId,
+      query,
+    );
+    const bannedUsersIds = await this.usersService.getBannedUsersIds();
 
     return {
       ...comments,
@@ -66,14 +68,14 @@ export class CommentsService {
   async getCommentById(
     commentId: string,
     { userId }: { userId?: string },
-  ): Promise<Comment | null> {
+  ): Promise<CommentView | null> {
     const commentData = await this.commentsRepository.findById(commentId);
 
     if (!commentData) {
       return null;
     }
 
-    const bannedUsersIds = await this.usersService.getUsersBanned();
+    const bannedUsersIds = await this.usersService.getBannedUsersIds();
 
     return new CommentsEntity(commentData)
       .setCurrentUser(userId)
@@ -83,22 +85,22 @@ export class CommentsService {
 
   async updateCommentById(
     id: string,
-    dto: UpdateCommentDto,
-  ): Promise<Comment | null> {
+    params: UpdateCommentParams,
+  ): Promise<CommentView> {
     const existedComment = await this.commentsRepository.findById(id);
 
     if (!existedComment) {
       throw new NotFoundException('Comment is not found');
     }
 
-    if (existedComment.commentatorInfo.userId !== dto.userId) {
+    if (existedComment.commentatorInfo.userId !== params.userId) {
       throw new ForbiddenException('Forbidden');
     }
 
     const entity = new CommentsEntity({
       ...existedComment,
-      content: dto.content,
-    }).setCurrentUser(dto.userId);
+      content: params.content,
+    }).setCurrentUser(params.userId);
 
     await this.commentsRepository.updateById(id, entity);
 
@@ -107,8 +109,8 @@ export class CommentsService {
 
   async updateCommentLikeStatusById(
     id: string,
-    dto: UpdateCommentLikeStatusDto,
-  ): Promise<Comment | null> {
+    params: UpdateCommentLikeStatusParams,
+  ): Promise<CommentView> {
     const existedComment = await this.commentsRepository.findById(id);
 
     if (!existedComment) {
@@ -119,22 +121,25 @@ export class CommentsService {
       ...existedComment,
       likesInfo: existedComment.likesInfo,
     })
-      .setCurrentUser(dto.userId)
-      .setLikeStatus(dto.likeStatus);
+      .setCurrentUser(params.userId)
+      .setLikeStatus(params.likeStatus);
 
     await this.commentsRepository.updateById(id, entity);
 
     return entity.toView();
   }
 
-  async deleteCommentById(id: string, dto: { userId?: string }): Promise<void> {
+  async deleteCommentById(
+    id: string,
+    params: { userId?: string },
+  ): Promise<void> {
     const existedComment = await this.commentsRepository.findById(id);
 
     if (!existedComment) {
       throw new NotFoundException('Comment is not found');
     }
 
-    if (existedComment.commentatorInfo.userId !== dto.userId) {
+    if (existedComment.commentatorInfo.userId !== params.userId) {
       throw new ForbiddenException('Forbidden');
     }
 

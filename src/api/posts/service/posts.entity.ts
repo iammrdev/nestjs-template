@@ -1,6 +1,6 @@
 import { LikeStatus } from '../../../types/likes';
 import { ForbiddenException } from '@nestjs/common';
-import { AppPost } from '../../../types/posts';
+import { PostsModelData } from '../repository/posts.model.types';
 
 type LikeAction = {
   addedAt: Date;
@@ -26,6 +26,24 @@ type Props = {
   createdAt: Date;
 };
 
+type ExtendedLikesInfo = {
+  likesCount: number;
+  dislikesCount: number;
+  myStatus: LikeStatus;
+  newestLikes: LikeAction[];
+};
+
+export type PostView = {
+  id: string;
+  title: string;
+  shortDescription: string;
+  blogId: string;
+  blogName: string;
+  content: string;
+  createdAt: Date;
+  extendedLikesInfo: ExtendedLikesInfo;
+};
+
 export class PostsEntity {
   public title: string;
   public shortDescription: string;
@@ -48,7 +66,7 @@ export class PostsEntity {
     this.fillEntity(props);
   }
 
-  private getLikeStatus() {
+  private getLikeStatus(): LikeStatus {
     if (!this.currentUser) {
       return LikeStatus.None;
     }
@@ -72,25 +90,25 @@ export class PostsEntity {
     return LikeStatus.None;
   }
 
-  public setId(id: string) {
+  public setId(id: string): PostsEntity {
     this.id = id;
 
     return this;
   }
 
-  public setAuthorId(userId?: string) {
+  public setAuthorId(userId?: string): PostsEntity {
     this.authorId = userId;
 
     return this;
   }
 
-  public setCurrentUser(user?: { id: string; login: string }) {
+  public setCurrentUser(user?: { id: string; login: string }): PostsEntity {
     this.currentUser = user;
 
     return this;
   }
 
-  public setBannedUsersIds(bannedUsersIds: string[]) {
+  public setBannedUsersIds(bannedUsersIds: string[]): PostsEntity {
     this.bannedUsersIds = bannedUsersIds;
 
     if (this.likesInfo) {
@@ -105,7 +123,7 @@ export class PostsEntity {
     return this;
   }
 
-  public fillEntity(props: Props) {
+  public fillEntity(props: Props): void {
     this.id = props.id;
     this.title = props.title;
     this.shortDescription = props.shortDescription;
@@ -117,7 +135,7 @@ export class PostsEntity {
     this.status = props.status;
   }
 
-  public setLikeStatus(likeStatus: LikeStatus) {
+  public setLikeStatus(likeStatus: LikeStatus): PostsEntity {
     if (!this.currentUser) {
       throw new ForbiddenException('Forbidden');
     }
@@ -173,7 +191,7 @@ export class PostsEntity {
     return this;
   }
 
-  public generateExtendedLikesInfo = () => {
+  public generateExtendedLikesInfo = (): ExtendedLikesInfo => {
     return {
       likesCount: this.likesInfo.likes.length,
       dislikesCount: this.likesInfo.dislikes.length,
@@ -189,15 +207,11 @@ export class PostsEntity {
 
             return 0;
           })
-          .slice(0, 3)
-          .map((item) => ({
-            ...item,
-            addedAt: item.addedAt,
-          })) || [],
+          .slice(0, 3) || [],
     };
   };
 
-  public toModel() {
+  public toModel(): Omit<PostsModelData, '_id'> {
     return {
       title: this.title,
       shortDescription: this.shortDescription,
@@ -211,7 +225,7 @@ export class PostsEntity {
     };
   }
 
-  public toView() {
+  public toView(): PostView {
     if (!this.id || !this.createdAt) {
       throw new Error('Incorrect model data');
     }
@@ -235,10 +249,12 @@ type CreatePostsEntityParams = {
   content: string;
   blogId: string;
   blogName: string;
-  userId?: string;
+  authorId?: string;
 };
 
-export const createPostEntity = (params: CreatePostsEntityParams) =>
+export const createPostEntity = (
+  params: CreatePostsEntityParams,
+): PostsEntity =>
   new PostsEntity({
     ...params,
     likesInfo: {

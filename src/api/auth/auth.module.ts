@@ -1,4 +1,5 @@
 import {
+  HttpStatus,
   Inject,
   MiddlewareConsumer,
   Module,
@@ -21,8 +22,7 @@ import { TokensRepository } from './repository/tokens.repository';
 import { RecoveryRepository } from './repository/recovery.repository';
 import { CreateUserUseCase } from '../users/use-case/create-user-use-case';
 import { LoginUserUseCase } from './use-case/login-user-use-case';
-import { RegisterUserUseCase } from './use-case/register-user-use-case.ts';
-import { ResendRegistrationEmailUseCase } from './use-case/resened-registration-email-use-case';
+import { ResendRegistrationEmailUseCase } from './use-case/resend-registration-email-use-case';
 import { GenerateNewPasswordUseCase } from './use-case/generate-new-password-use-case';
 import { ConfirmRegistrationUseCase } from './use-case/confirm-registration-use-case';
 import { RecoveryPasswordUseCase } from './use-case/recovery-password-use-case.ts';
@@ -56,7 +56,6 @@ type Attempt = { ip: string; timestamp: number; url: string };
     CreateUserUseCase,
     LoginUserUseCase,
     LogoutUserUseCase,
-    RegisterUserUseCase,
     ResendRegistrationEmailUseCase,
     GenerateNewPasswordUseCase,
     ConfirmRegistrationUseCase,
@@ -67,7 +66,7 @@ type Attempt = { ip: string; timestamp: number; url: string };
 export class AuthModule {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
-  configure(consumer: MiddlewareConsumer) {
+  configure(consumer: MiddlewareConsumer): void {
     consumer.apply(this.verifyIP.bind(this)).forRoutes(
       { path: 'auth/login', method: RequestMethod.POST },
       { path: 'auth/registration-confirmation', method: RequestMethod.POST },
@@ -81,7 +80,11 @@ export class AuthModule {
     );
   }
 
-  async verifyIP(req: Request, _res: Response, next: NextFunction) {
+  async verifyIP(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> {
     const url = req.originalUrl;
     const now = Date.now();
 
@@ -95,9 +98,9 @@ export class AuthModule {
 
     await this.cacheManager.set(key, newAttempts, 10000);
 
-    // if (newAttempts.length > 5) {
-    //   return res.sendStatus(HttpStatus.TOO_MANY_REQUESTS);
-    // }
+    if (newAttempts.length > 5) {
+      return res.sendStatus(HttpStatus.TOO_MANY_REQUESTS);
+    }
 
     next();
   }

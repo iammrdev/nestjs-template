@@ -3,9 +3,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { AnyObject, Model } from 'mongoose';
 import { PostsModel } from './posts.model';
 import { Pagination } from '../../../core/pagination';
-import { PaginationList } from '../../../types/common';
 import { PostsModelData } from './posts.model.types';
-import { GetPostsParams, PostsQueryData } from './posts.query.repository.types';
+import {
+  FindAllPostsByBlogResponse,
+  FindAllPostsByBlogsResponse,
+  FindAllPostsResponse,
+  GetPostsParams,
+} from './posts.query.repository.types';
+import { AppPost } from '../../../types/posts';
 
 @Injectable()
 export class PostsQueryRepository {
@@ -14,7 +19,7 @@ export class PostsQueryRepository {
     private readonly postsModel: Model<PostsModel>,
   ) {}
 
-  private buildPost(dbPost: PostsModelData): PostsQueryData {
+  private buildPost(dbPost: PostsModelData): AppPost {
     return {
       id: dbPost._id.toString(),
       title: dbPost.title,
@@ -29,44 +34,71 @@ export class PostsQueryRepository {
     };
   }
 
-  public async findAll(
-    params: GetPostsParams,
-    customfilter?: { blogId: string },
-  ): Promise<PaginationList<PostsQueryData[]>> {
+  private buildPaginationFilter(params?: {
+    blogId: string;
+  }): Record<string, any> {
     const filter: AnyObject[] = [{ status: { $ne: 'hidden' } }];
 
-    if (customfilter) {
-      filter.push(customfilter);
+    if (params) {
+      filter.push(params);
     }
 
-    const totalCount = await this.postsModel
-      .countDocuments({ $and: filter })
-      .exec();
+    return filter;
+  }
 
-    const pagination = new Pagination<PostsQueryData>({
-      page: params.pageNumber,
-      pageSize: params.pageSize,
+  private async buildPagination(
+    paginationParams: {
+      pageNumber: number;
+      pageSize: number;
+      sortBy: string;
+      sortDirection: 'asc' | 'desc';
+    },
+    filter: AnyObject,
+  ): Promise<Pagination<PostsModelData>> {
+    const totalCount = await this.postsModel.countDocuments(filter).exec();
+
+    const pagination = new Pagination<PostsModelData>({
+      page: paginationParams.pageNumber,
+      pageSize: paginationParams.pageSize,
       totalCount,
     });
 
     const dbPosts = await this.postsModel
-      .find({ $and: filter })
-      .sort({ [params.sortBy]: params.sortDirection })
+      .find(filter)
+      .sort({ [paginationParams.sortBy]: paginationParams.sortDirection })
       .skip(pagination.skip)
       .limit(pagination.pageSize)
       .exec();
 
-    return pagination.setItems(dbPosts.map(this.buildPost)).toView();
+    pagination.setItems(dbPosts);
+
+    return pagination;
   }
 
-  public async findAllByBlog(
+  public async findAllPosts(
+    params: GetPostsParams,
+  ): Promise<FindAllPostsResponse> {
+    const filter = this.buildPaginationFilter();
+
+    const pagination = await this.buildPagination(params, filter);
+
+    return pagination.toView(this.buildPost);
+  }
+
+  public async findAllPostsByBlog(
     blogId: string,
     params: GetPostsParams,
-  ): Promise<PaginationList<PostsQueryData[]>> {
-    return this.findAll(params, { blogId });
+  ): Promise<FindAllPostsByBlogResponse> {
+    const filter = this.buildPaginationFilter({ blogId });
+
+    const pagination = await this.buildPagination(params, filter);
+
+    return pagination.toView(this.buildPost);
   }
 
-  public async findAllByBlogs(blogIds: string[]) {
+  public async findAllPostsByBlogs(
+    blogIds: string[],
+  ): Promise<FindAllPostsByBlogsResponse> {
     return this.postsModel.find({ blogId: { $in: blogIds } });
   }
 }

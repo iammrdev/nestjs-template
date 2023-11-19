@@ -13,7 +13,7 @@ export type BanInfo = {
   banReason: string | null;
 };
 
-export type UserModelData = {
+export type UsersModelData = {
   _id: Types.ObjectId;
   login: string;
   passwordHash: string;

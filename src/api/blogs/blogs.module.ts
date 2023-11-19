@@ -5,16 +5,19 @@ import { BlogsService } from './service/blogs.service';
 import { BlogsController } from './controller/blogs.controller';
 import { BlogsRepository } from './repository/blogs.repository';
 import { PostsModule } from '../posts/posts.module';
-import { BlogUsersModel, BlogUsersSchema } from './repository/blog-users.model';
-import { BlogUsersRepository } from './repository/blog-users.repository';
+import {
+  BloggersModel,
+  BloggersSchema,
+} from '../bloggers/repository/bloggers.model';
+import { BloggersRepository } from '../bloggers/repository/bloggers.repository';
 import { BlogsQueryRepository } from './repository/blogs.query.repository';
-import { BlogUsersQueryRepository } from './repository/blog-users.query.repository';
+import { BloggersQueryRepository } from '../bloggers/repository/bloggers.query.repository';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: BlogsModel.name, schema: BlogsSchema }]),
     MongooseModule.forFeature([
-      { name: BlogUsersModel.name, schema: BlogUsersSchema },
+      { name: BloggersModel.name, schema: BloggersSchema },
     ]),
     forwardRef(() => PostsModule),
   ],
@@ -22,15 +25,15 @@ import { BlogUsersQueryRepository } from './repository/blog-users.query.reposito
     BlogsService,
     BlogsRepository,
     BlogsQueryRepository,
-    BlogUsersQueryRepository,
-    BlogUsersRepository,
+    BloggersQueryRepository,
+    BloggersRepository,
   ],
   controllers: [BlogsController],
   providers: [
     BlogsRepository,
     BlogsQueryRepository,
-    BlogUsersRepository,
-    BlogUsersQueryRepository,
+    BloggersRepository,
+    BloggersQueryRepository,
     BlogsService,
   ],
 })

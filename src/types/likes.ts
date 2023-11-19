@@ -3,9 +3,3 @@ export enum LikeStatus {
   Like = 'Like',
   Dislike = 'Dislike',
 }
-
-export type LikeInfo = {
-  addedAt: Date;
-  login: string;
-  userId: string;
-};

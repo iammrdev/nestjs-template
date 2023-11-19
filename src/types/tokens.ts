@@ -1,4 +1,4 @@
-export interface Token {
+export interface AppToken {
   id: string;
   userId: string;
   ip: string;

@@ -5,7 +5,6 @@ import add from 'date-fns/add';
 import { RecoveryRepository } from '../repository/recovery.repository';
 import { UsersRepository } from '../../users/repository/users.repository';
 import { EmailService } from '../../../app/emails/email.service';
-import { RecoveryEntity } from '../service/auth.service.interface';
 
 type CommandPayload = {
   email: string;
@@ -17,6 +16,8 @@ export class RecoveryPasswordCommand {
   constructor(public payload: CommandPayload) {}
 }
 
+export type RecoveryPasswordUseCaseResult = void;
+
 @CommandHandler(RecoveryPasswordCommand)
 export class RecoveryPasswordUseCase
   implements ICommandHandler<RecoveryPasswordCommand>
@@ -26,14 +27,16 @@ export class RecoveryPasswordUseCase
     private readonly recoveryRepository: RecoveryRepository,
   ) {}
 
-  async execute(command: RecoveryPasswordCommand) {
+  async execute(
+    command: RecoveryPasswordCommand,
+  ): Promise<RecoveryPasswordUseCaseResult> {
     const user = await this.usersRepository.findByEmail(command.payload.email);
 
     if (!user) {
       return;
     }
 
-    const recoveryEnitity: RecoveryEntity = {
+    const recoveryEnitity = {
       userId: user.id,
       deviceId: uuidv4(),
       ip: command.payload.ip,
@@ -45,12 +48,12 @@ export class RecoveryPasswordUseCase
 
     const recovery = await this.recoveryRepository.create(recoveryEnitity);
 
-    const info = await EmailService.sendRecoveryEmail({
+    const { messageId } = await EmailService.sendRecoveryEmail({
       email: user.email,
       code: recovery.code,
     });
 
-    if (!info.messageId) {
+    if (!messageId) {
       throw new InternalServerErrorException('Server error');
     }
   }

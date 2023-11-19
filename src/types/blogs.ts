@@ -8,7 +8,7 @@ type BanInfo = {
   banDate: Date | null;
 };
 
-export type Blog = {
+export type AppBlog = {
   id: string;
   name: string;
   description: string;
@@ -17,13 +17,7 @@ export type Blog = {
   createdAt: Date;
 };
 
-export type BlogExtended = {
-  id: string;
-  name: string;
-  description: string;
-  websiteUrl: string;
-  isMembership: boolean;
-  createdAt: Date;
+export type AppBlogExtended = AppBlog & {
   banInfo: BanInfo;
   blogOwnerInfo: BlogOwnerInfo | null;
 };

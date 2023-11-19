@@ -1,14 +1,7 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JWTPayloadInfo } from '../../types/auth';
-
-export interface RefreshTokenUserInfo {
-  id: string;
-  login: string;
-  email: string;
-  refreshToken: string;
-}
+import { AuthUser, JWTPayloadInfo } from '../../types/auth';
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
@@ -18,7 +11,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request) => request?.cookies?.refreshToken,
+        (request): string | null => request?.cookies?.refreshToken || null,
       ]),
       ignoreExpiration: false,
       secretOrKey: 'secret2',
@@ -26,10 +19,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(
-    req,
-    { id, login, email }: JWTPayloadInfo,
-  ): Promise<RefreshTokenUserInfo> {
+  async validate(req, { id, login, email }: JWTPayloadInfo): Promise<AuthUser> {
     if (!id) {
       throw new UnauthorizedException('forbidden');
     }

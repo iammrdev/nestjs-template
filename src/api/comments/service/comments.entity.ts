@@ -1,5 +1,6 @@
 import { ForbiddenException } from '@nestjs/common';
 import { LikeStatus } from '../../../types/likes';
+import { CommentsModelData } from '../repository/comments.model.types';
 
 type LikesInfo = {
   dislikes: string[];
@@ -17,8 +18,20 @@ type Props = {
   content: string;
   commentatorInfo: CommentatorInfo;
   likesInfo: LikesInfo;
-  status?: 'active' | 'hidden';
-  createdAt?: Date;
+  status: 'active' | 'hidden-by-ban';
+  createdAt: Date;
+};
+
+export type CommentView = {
+  id: string;
+  content: string;
+  commentatorInfo: CommentatorInfo;
+  likesInfo: {
+    likesCount: number;
+    dislikesCount: number;
+    myStatus: LikeStatus;
+  };
+  createdAt: Date;
 };
 
 export class CommentsEntity {
@@ -29,15 +42,15 @@ export class CommentsEntity {
 
   public id?: string;
   public currentUserId?: string;
-  public status?: 'active' | 'hidden';
-  public createdAt?: Date;
+  public status: 'active' | 'hidden-by-ban';
+  public createdAt: Date;
   public bannedUsersIds?: string[];
 
   constructor(props: Props) {
     this.fillEntity(props);
   }
 
-  private getLikeStatus() {
+  private getLikeStatus(): LikeStatus {
     if (!this.currentUserId) {
       return LikeStatus.None;
     }
@@ -57,19 +70,19 @@ export class CommentsEntity {
     return LikeStatus.None;
   }
 
-  public setId(id: string) {
+  public setId(id: string): CommentsEntity {
     this.id = id;
 
     return this;
   }
 
-  public setCurrentUser(userId?: string) {
+  public setCurrentUser(userId?: string): CommentsEntity {
     this.currentUserId = userId;
 
     return this;
   }
 
-  public setBannedUsersIds(bannedUsersIds: string[]) {
+  public setBannedUsersIds(bannedUsersIds: string[]): CommentsEntity {
     this.bannedUsersIds = bannedUsersIds;
 
     if (this.likesInfo) {
@@ -84,7 +97,7 @@ export class CommentsEntity {
     return this;
   }
 
-  public fillEntity(props: Props) {
+  public fillEntity(props: Props): void {
     this.id = props.id;
     this.postId = props.postId;
     this.content = props.content;
@@ -94,7 +107,7 @@ export class CommentsEntity {
     this.createdAt = props.createdAt;
   }
 
-  public setLikeStatus(likeStatus: LikeStatus) {
+  public setLikeStatus(likeStatus: LikeStatus): CommentsEntity {
     if (!this.currentUserId) {
       throw new ForbiddenException('Forbidden');
     }
@@ -145,7 +158,7 @@ export class CommentsEntity {
     return this;
   }
 
-  public toModel() {
+  public toModel(): Omit<CommentsModelData, '_id'> {
     return {
       postId: this.postId,
       content: this.content,
@@ -156,7 +169,7 @@ export class CommentsEntity {
     };
   }
 
-  public toView() {
+  public toView(): CommentView {
     if (!this.id || !this.createdAt) {
       throw new Error('Incorrect model data');
     }
@@ -174,3 +187,29 @@ export class CommentsEntity {
     };
   }
 }
+
+type CreateCommentsEntityParams = {
+  content: string;
+  postId: string;
+  userId: string;
+  userLogin: string;
+};
+
+export const createCommentsEntity = (
+  params: CreateCommentsEntityParams,
+): CommentsEntity => {
+  return new CommentsEntity({
+    content: params.content,
+    postId: params.postId,
+    commentatorInfo: {
+      userId: params.userId,
+      userLogin: params.userLogin,
+    },
+    status: 'active',
+    likesInfo: {
+      dislikes: [],
+      likes: [],
+    },
+    createdAt: new Date(),
+  });
+};

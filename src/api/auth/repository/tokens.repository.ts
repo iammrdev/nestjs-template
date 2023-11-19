@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { AnyObject, Model } from 'mongoose';
-import { DataToken, TokensModel } from './tokens.model';
-import { Token } from '../../../types/tokens';
-import { RefreshTokenEntity } from '../service/auth.service.interface';
+import { TokensModel } from './tokens.model';
+import { AppToken } from '../../../types/tokens';
+import { TokensModelData } from './tokens.model.types';
 
 @Injectable()
 export class TokensRepository {
@@ -12,7 +12,7 @@ export class TokensRepository {
     private readonly tokensModel: Model<TokensModel>,
   ) {}
 
-  private buildToken(dbToken: DataToken): Token {
+  private buildToken(dbToken: TokensModelData): AppToken {
     return {
       id: dbToken._id.toString(),
       userId: dbToken.userId,
@@ -25,49 +25,28 @@ export class TokensRepository {
     };
   }
 
-  public async create(tokensEntity: RefreshTokenEntity): Promise<Token> {
-    const dbToken = await this.tokensModel.create(tokensEntity);
+  public async create(
+    tokensModelData: Omit<TokensModelData, '_id'>,
+  ): Promise<AppToken> {
+    const dbToken = await this.tokensModel.create(tokensModelData);
 
     return this.buildToken(dbToken);
   }
 
-  public async findById(id: string): Promise<Token | null> {
-    const dbToken = await this.tokensModel.findOne({ _id: id }).exec();
-
-    return dbToken && this.buildToken(dbToken);
-  }
-
-  public async findByUserId(userId: string): Promise<Token | null> {
-    const dbToken = await this.tokensModel.findOne({ userId }).exec();
-
-    return dbToken && this.buildToken(dbToken);
-  }
-
-  public async findByDeviceId(deviceId: string): Promise<Token | null> {
+  public async findByDeviceId(deviceId: string): Promise<AppToken | null> {
     const dbToken = await this.tokensModel.findOne({ deviceId }).exec();
 
     return dbToken && this.buildToken(dbToken);
   }
 
-  public async findAllByUserId(userId: string): Promise<Token[]> {
+  public async findAllByUserId(userId: string): Promise<AppToken[]> {
     const dbTokens = await this.tokensModel.find({ userId }).exec();
 
     return dbTokens.map((dbToken) => this.buildToken(dbToken));
   }
 
-  public async findByToken(refreshToken: string): Promise<Token | null> {
+  public async findByToken(refreshToken: string): Promise<AppToken | null> {
     const dbToken = await this.tokensModel.findOne({ refreshToken }).exec();
-
-    return dbToken && this.buildToken(dbToken);
-  }
-
-  public async updateById(
-    id: string,
-    tokensEntity: RefreshTokenEntity,
-  ): Promise<Token | null> {
-    const dbToken = await this.tokensModel
-      .findByIdAndUpdate(id, tokensEntity, { new: true })
-      .exec();
 
     return dbToken && this.buildToken(dbToken);
   }

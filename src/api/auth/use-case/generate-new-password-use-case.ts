@@ -1,8 +1,11 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { RecoveryRepository } from '../repository/recovery.repository';
 import { UsersRepository } from '../../users/repository/users.repository';
-import { UsersEntity } from '../../users/service/users.entity';
+import { UserView, UsersEntity } from '../../users/service/users.entity';
 
 type CommandPayload = {
   newPassword: string;
@@ -13,6 +16,8 @@ export class GenerateNewPasswordCommand {
   constructor(public payload: CommandPayload) {}
 }
 
+export type GenerateNewPasswordUseCaseResult = UserView;
+
 @CommandHandler(GenerateNewPasswordCommand)
 export class GenerateNewPasswordUseCase
   implements ICommandHandler<GenerateNewPasswordCommand>
@@ -22,7 +27,9 @@ export class GenerateNewPasswordUseCase
     private readonly recoveryRepository: RecoveryRepository,
   ) {}
 
-  async execute(command: GenerateNewPasswordCommand) {
+  async execute(
+    command: GenerateNewPasswordCommand,
+  ): Promise<GenerateNewPasswordUseCaseResult> {
     const recovery = await this.recoveryRepository.findByCode(
       command.payload.recoveryCode,
     );
@@ -41,6 +48,15 @@ export class GenerateNewPasswordUseCase
       command.payload.newPassword.toString(),
     );
 
-    return this.usersRepository.updateById(recovery.userId, entity.toModel());
+    const updatedUser = await this.usersRepository.updateById(
+      recovery.userId,
+      entity.toModel(),
+    );
+
+    if (!updatedUser) {
+      throw new InternalServerErrorException('Incorrect update user data');
+    }
+
+    return updatedUser;
   }
 }

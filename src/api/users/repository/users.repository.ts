@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AppUser } from '../../../types/users';
 import { UsersModel } from './users.model';
-import { UserModelData } from './user.model.types';
+import { UsersModelData } from './user.model.types';
 
 @Injectable()
 export class UsersRepository {
@@ -12,19 +12,19 @@ export class UsersRepository {
     private readonly usersModel: Model<UsersModel>,
   ) {}
 
-  private buildUser(dbUser: UserModelData) {
+  private buildUser(dbUser: UsersModelData): AppUser {
     return {
       id: dbUser._id.toString(),
       login: dbUser.login,
       email: dbUser.email,
-      passwordHash: dbUser.passwordHash,
       confirmation: dbUser.confirmation,
+      passwordHash: dbUser.passwordHash,
       banInfo: dbUser.banInfo,
       createdAt: dbUser.createdAt,
     };
   }
 
-  public async create(userData: Omit<UserModelData, '_id'>): Promise<AppUser> {
+  public async create(userData: Omit<UsersModelData, '_id'>): Promise<AppUser> {
     const dbUser = await this.usersModel.create(userData);
 
     return this.buildUser(dbUser);
@@ -44,7 +44,7 @@ export class UsersRepository {
 
   public async findByLoginOrEmail(
     loginOrEmail: string | { login: string; email: string },
-  ) {
+  ): Promise<AppUser | null> {
     const login =
       typeof loginOrEmail === 'string' ? loginOrEmail : loginOrEmail.login;
     const email =
@@ -65,7 +65,7 @@ export class UsersRepository {
     return dbUser && this.buildUser(dbUser);
   }
 
-  public async findAllBannedIds(): Promise<string[]> {
+  public async getBannedIds(): Promise<string[]> {
     const dbUsers = await this.usersModel
       .find({ 'banInfo.isBanned': true })
       .exec();
@@ -75,7 +75,7 @@ export class UsersRepository {
 
   public async updateById(
     id: string,
-    userData: Omit<UserModelData, '_id'>,
+    userData: Omit<UsersModelData, '_id'>,
   ): Promise<AppUser | null> {
     const dbUser = await this.usersModel
       .findByIdAndUpdate(id, userData, { new: true })

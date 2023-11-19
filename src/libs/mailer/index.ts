@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 interface SendMethodParams {
   email: string;
@@ -7,7 +8,9 @@ interface SendMethodParams {
 }
 
 export class Mailer {
-  static send = async (params: SendMethodParams) => {
+  static send = async (
+    params: SendMethodParams,
+  ): Promise<SMTPTransport.SentMessageInfo> => {
     const { email, subject, message } = params;
 
     const transporter = nodemailer.createTransport({

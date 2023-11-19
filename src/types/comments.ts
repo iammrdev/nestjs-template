@@ -1,16 +1,19 @@
-import { LikeStatus } from './likes';
+type LikesInfo = {
+  dislikes: string[];
+  likes: string[];
+};
 
-export type Comment = {
+type Status = 'active' | 'hidden-by-ban';
+
+export type AppComment = {
   id: string;
+  postId: string;
   content: string;
   commentatorInfo: {
     userId: string;
     userLogin: string;
   };
-  likesInfo: {
-    dislikesCount: number;
-    likesCount: number;
-    myStatus: LikeStatus;
-  };
+  status: Status;
+  likesInfo: LikesInfo;
   createdAt: Date;
 };

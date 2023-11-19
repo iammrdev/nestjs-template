@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { AnyObject, Model } from 'mongoose';
+import { Pagination } from '../../../core/pagination';
 import { AppUser } from '../../../types/users';
 import { UsersModel } from './users.model';
+import { UsersModelData } from './user.model.types';
 import {
   FindAllUsersParams,
+  FindAllUsersResponse,
   FindAllUsersWithBanInfoParams,
+  FindAllUsersWithBanInfoResponse,
 } from './users.query.repository.types';
-import { Pagination } from '../../../core/pagination';
-import { UserModelData } from './user.model.types';
 
 @Injectable()
 export class UsersQueryRepository {
@@ -17,21 +19,21 @@ export class UsersQueryRepository {
     private readonly usersModel: Model<UsersModel>,
   ) {}
 
-  private buildUser(dbUser: UserModelData) {
+  private buildUser(dbUser: UsersModelData): AppUser {
     return {
       id: dbUser._id.toString(),
       login: dbUser.login,
       email: dbUser.email,
-      passwordHash: dbUser.passwordHash,
       confirmation: dbUser.confirmation,
       banInfo: dbUser.banInfo,
+      passwordHash: dbUser.passwordHash,
       createdAt: dbUser.createdAt,
     };
   }
 
   private getPaginationFilter(
     params: FindAllUsersParams | FindAllUsersWithBanInfoParams,
-  ) {
+  ): Record<string, any> {
     const filter = {};
 
     const $or: AnyObject[] = [];
@@ -57,9 +59,9 @@ export class UsersQueryRepository {
     return filter;
   }
 
-  private async findAll(
+  private async find(
     params: FindAllUsersParams | FindAllUsersWithBanInfoParams,
-  ) {
+  ): Promise<Pagination<AppUser>> {
     const filter = this.getPaginationFilter(params);
 
     const totalCount = await this.usersModel.countDocuments(filter).exec();
@@ -80,8 +82,10 @@ export class UsersQueryRepository {
     return pagination.setItems(dbUsers.map(this.buildUser));
   }
 
-  public async findAllBase(params: FindAllUsersParams) {
-    const data = await this.findAll(params);
+  public async findAllUsers(
+    params: FindAllUsersParams,
+  ): Promise<FindAllUsersResponse> {
+    const data = await this.find(params);
 
     return data.toView((item) => ({
       id: item.id,
@@ -91,8 +95,10 @@ export class UsersQueryRepository {
     }));
   }
 
-  public async findAllWithBanInfo(params: FindAllUsersWithBanInfoParams) {
-    const data = await this.findAll(params);
+  public async findAllWithBanInfo(
+    params: FindAllUsersWithBanInfoParams,
+  ): Promise<FindAllUsersWithBanInfoResponse> {
+    const data = await this.find(params);
 
     return data.toView((item) => ({
       id: item.id,

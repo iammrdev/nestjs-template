@@ -13,7 +13,7 @@ export class TestingController {
   })
   @Delete('all-data')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteUser() {
+  async deleteUser(): Promise<void> {
     await this.testingService.deleteAllData();
   }
 }

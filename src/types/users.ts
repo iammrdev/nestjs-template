@@ -17,5 +17,6 @@ export type AppUser = {
   email: string;
   banInfo: BanInfo;
   confirmation: Confirmation;
+  passwordHash: string;
   createdAt: Date;
 };

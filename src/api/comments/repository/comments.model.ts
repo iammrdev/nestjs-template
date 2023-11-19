@@ -1,32 +1,16 @@
-import { Document, Schema as MongooseSchema, Types, now } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-
-type LikesInfo = {
-  dislikes: string[];
-  likes: string[];
-};
-
-type CommentatorInfo = {
-  userId: string;
-  userLogin: string;
-};
-
-export type Status = 'active' | 'hidden-by-ban';
-
-export type CommentRepo = {
-  _id: Types.ObjectId;
-  postId: string;
-  content: string;
-  likesInfo: LikesInfo;
-  commentatorInfo: CommentatorInfo;
-  status: Status;
-  createdAt: Date;
-};
+import {
+  CommentatorInfo,
+  CommentsModelData,
+  LikesInfo,
+  Status,
+} from './comments.model.types';
 
 @Schema({ collection: 'comments' })
 export class CommentsModel
   extends Document
-  implements Omit<CommentRepo, '_id'>
+  implements Omit<CommentsModelData, '_id'>
 {
   @Prop({ required: true })
   public postId: string;
@@ -40,10 +24,10 @@ export class CommentsModel
   @Prop({ type: MongooseSchema.Types.Mixed, required: true })
   public likesInfo: LikesInfo;
 
-  @Prop({ default: 'active' })
+  @Prop({ required: true })
   public status: Status;
 
-  @Prop({ default: now() })
+  @Prop({ required: true })
   createdAt: Date;
 }
 

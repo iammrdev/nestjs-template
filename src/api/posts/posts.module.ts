@@ -7,8 +7,9 @@ import { PostsRepository } from './repository/posts.repository';
 import { BlogsModule } from '../blogs/blogs.module';
 import { CommentsModule } from '../comments/comments.module';
 import { UsersModule } from '../users';
-import { BlogIdValidator } from './controller/posts.controller.interface';
+import { BlogIdValidator } from './controller/posts.controller.dto';
 import { PostsQueryRepository } from './repository/posts.query.repository';
+import { BloggersService } from '../bloggers/service/bloggers.service';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PostsQueryRepository } from './repository/posts.query.repository';
     PostsRepository,
     PostsQueryRepository,
     PostsService,
+    BloggersService,
     BlogIdValidator,
   ],
 })

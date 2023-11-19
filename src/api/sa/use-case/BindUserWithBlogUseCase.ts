@@ -22,7 +22,7 @@ export class BindUserWithBlogUseCase
     private readonly blogsRepository: BlogsRepository,
   ) {}
 
-  async execute(command: BindUserWithBlogCommand) {
+  async execute(command: BindUserWithBlogCommand): Promise<void> {
     const existedUser = await this.usersRepository.findById(
       command.payload.userId,
     );

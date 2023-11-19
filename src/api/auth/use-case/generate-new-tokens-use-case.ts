@@ -14,6 +14,13 @@ type CommandPayload = {
   userAgent: string;
 };
 
+type Tokens = {
+  accessToken: string;
+  refreshToken: string;
+};
+
+export type GenerateNewTokensUseCaseResult = Tokens;
+
 export class GenerateNewTokensCommand {
   constructor(public payload: CommandPayload) {}
 }
@@ -27,7 +34,9 @@ export class GenerateNewTokensUseCase
     private readonly tokensRepository: TokensRepository,
   ) {}
 
-  async execute(command: GenerateNewTokensCommand) {
+  async execute(
+    command: GenerateNewTokensCommand,
+  ): Promise<GenerateNewTokensUseCaseResult> {
     const userInfo = command.payload.userInfo;
     const tokenInfo = await this.tokensRepository.findByToken(
       userInfo.refreshToken,
@@ -39,7 +48,7 @@ export class GenerateNewTokensUseCase
 
     await this.tokensRepository.deleteById(tokenInfo.id);
 
-    return this.authService.generateAuthInfo({
+    return this.authService.generateTokens({
       userId: userInfo.id,
       login: userInfo.login,
       email: userInfo.email,

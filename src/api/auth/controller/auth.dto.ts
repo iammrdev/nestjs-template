@@ -9,19 +9,19 @@ import {
 
 @ValidatorConstraint({ name: 'email', async: false })
 export class CustomEmailValidator implements ValidatorConstraintInterface {
-  validate(email: string) {
+  validate(email: string): boolean {
     return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
   }
 }
 
 @ValidatorConstraint({ name: 'login', async: false })
 export class CustomLoginValidator implements ValidatorConstraintInterface {
-  validate(login: string) {
+  validate(login: string): boolean {
     return /^[a-zA-Z0-9_-]*$/.test(login);
   }
 }
 
-export class LoginDto {
+export class PostLoginDto {
   @ApiProperty({
     required: true,
     description: 'User email',
@@ -39,7 +39,7 @@ export class LoginDto {
   public password: string;
 }
 
-export class RegistrationDto {
+export class PostRegistrationDto {
   @ApiProperty({ required: true })
   @IsString()
   @Length(3, 10, { message: 'Invalid login length' })
@@ -56,25 +56,25 @@ export class RegistrationDto {
   public email: string;
 }
 
-export class RegistrationConfirmationDto {
+export class PostRegistrationConfirmationDto {
   @ApiProperty({ required: true })
   @IsString()
   public code: string;
 }
 
-export class RegistratioEmailResendingDto {
+export class PostRegistratioEmailResendingDto {
   @ApiProperty({ required: true })
   @Validate(CustomEmailValidator, { message: 'Invalid email' })
   public email: string;
 }
 
-export class PasswordRecoveryDto {
+export class PostPasswordRecoveryDto {
   @ApiProperty({ required: true })
   @Validate(CustomEmailValidator, { message: 'Invalid email' })
   public email: string;
 }
 
-export class NewPasswordDto {
+export class PostNewPasswordDto {
   @ApiProperty({ required: true })
   public newPassword: string;
 

@@ -7,6 +7,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CommentsModel, CommentsSchema } from './repository/comments.model';
 import { UsersModule } from '../users';
 import { JwtAccessModule } from '../../app/auth-jwt-access/jwt-access.module';
+import { CommentsQueryRepository } from './repository/comments.query.repository';
 
 @Module({
   imports: [
@@ -16,8 +17,8 @@ import { JwtAccessModule } from '../../app/auth-jwt-access/jwt-access.module';
     JwtAccessModule,
     UsersModule,
   ],
-  exports: [CommentsService, CommentsRepository],
+  exports: [CommentsService, CommentsRepository, CommentsQueryRepository],
   controllers: [CommentsController],
-  providers: [CommentsRepository, CommentsService],
+  providers: [CommentsRepository, CommentsQueryRepository, CommentsService],
 })
 export class CommentsModule {}

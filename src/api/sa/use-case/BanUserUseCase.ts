@@ -25,7 +25,7 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
     private readonly commentsRepository: CommentsRepository,
   ) {}
 
-  async execute(command: BanUserCommand) {
+  async execute(command: BanUserCommand): Promise<void> {
     const existedUser = await this.usersRepository.findById(
       command.payload.userId,
     );

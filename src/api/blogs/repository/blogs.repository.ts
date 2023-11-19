@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Blog } from '../../../types/blogs';
+import { AppBlog, AppBlogExtended } from '../../../types/blogs';
 import { BlogsModelData } from './blogs.model.types';
 import { BlogsModel } from './blogs.model';
 
@@ -12,7 +12,7 @@ export class BlogsRepository {
     private readonly blogsModel: Model<BlogsModel>,
   ) {}
 
-  private buildBlog(dataBlog: BlogsModelData): Blog {
+  private buildBlog(dataBlog: BlogsModelData): AppBlog {
     return {
       id: dataBlog._id.toString(),
       name: dataBlog.name,
@@ -23,7 +23,7 @@ export class BlogsRepository {
     };
   }
 
-  private buildExtendedBlog(dataBlog: BlogsModelData) {
+  private buildExtendedBlog(dataBlog: BlogsModelData): AppBlogExtended {
     return {
       ...this.buildBlog(dataBlog),
       blogOwnerInfo: dataBlog.blogOwnerInfo,
@@ -33,13 +33,13 @@ export class BlogsRepository {
 
   public async create(
     blogModelData: Omit<BlogsModelData, '_id'>,
-  ): Promise<Blog> {
+  ): Promise<AppBlog> {
     const dbBlog = await this.blogsModel.create(blogModelData);
 
     return this.buildBlog(dbBlog);
   }
 
-  public async findById(id: string): Promise<Blog | null> {
+  public async findById(id: string): Promise<AppBlog | null> {
     const dbBlog = await this.blogsModel
       .findOne({
         _id: id,
@@ -50,7 +50,7 @@ export class BlogsRepository {
     return dbBlog && this.buildBlog(dbBlog);
   }
 
-  public async findByIdExtended(id: string) {
+  public async findByIdExtended(id: string): Promise<AppBlogExtended | null> {
     const dbBlog = await this.blogsModel.findOne({ _id: id }).exec();
 
     return dbBlog && this.buildExtendedBlog(dbBlog);
@@ -59,7 +59,7 @@ export class BlogsRepository {
   public async updateById(
     id: string,
     blogModelData: Omit<BlogsModelData, '_id'>,
-  ): Promise<Blog | null> {
+  ): Promise<AppBlog | null> {
     const dbBlog = await this.blogsModel
       .findByIdAndUpdate(id, blogModelData, { new: true })
       .exec();

@@ -4,16 +4,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
-  CreatePostDto,
+  CreatePostParams,
   GetPostsQuery,
-  UpdatePostDto,
-  UpdatePostLikeStatusDto,
+  UpdatePostParams,
+  UpdatePostLikeStatusParams,
   UserData,
-} from './posts.service.interface';
+} from './posts.service.types';
 import { PostsRepository } from '../repository/posts.repository';
-import { PostsEntity, createPostEntity } from './posts.entity';
+import { PostView, PostsEntity, createPostEntity } from './posts.entity';
 import { UsersService } from '../../users';
 import { PostsQueryRepository } from '../repository/posts.query.repository';
+import { PaginationList } from 'src/types/common';
 
 @Injectable()
 export class PostsService {
@@ -23,17 +24,23 @@ export class PostsService {
     private readonly usersService: UsersService,
   ) {}
 
-  async createPost(dto: CreatePostDto, user?: UserData) {
-    const entity = createPostEntity({ ...dto, userId: user?.id });
+  async createPost(
+    params: CreatePostParams,
+    userId?: string,
+  ): Promise<PostView> {
+    const entity = createPostEntity({ ...params, authorId: userId });
 
     const { id } = await this.postsRepository.create(entity.toModel());
 
     return entity.setId(id).toView();
   }
 
-  async getPosts(query: GetPostsQuery, dto: { user?: UserData }) {
-    const posts = await this.postsQueryRepository.findAll(query);
-    const bannedUsersIds = await this.usersService.getUsersBanned();
+  async getPosts(
+    query: GetPostsQuery,
+    dto: { user?: UserData },
+  ): Promise<PaginationList<PostView[]>> {
+    const posts = await this.postsQueryRepository.findAllPosts(query);
+    const bannedUsersIds = await this.usersService.getBannedUsersIds();
 
     return {
       ...posts,
@@ -46,14 +53,17 @@ export class PostsService {
     };
   }
 
-  async getPostById(id: string, dto?: { user?: UserData }) {
+  async getPostById(
+    id: string,
+    dto?: { user?: UserData },
+  ): Promise<PostView | null> {
     const postData = await this.postsRepository.findById(id);
 
     if (!postData) {
       return null;
     }
 
-    const bannedUsersIds = await this.usersService.getUsersBanned();
+    const bannedUsersIds = await this.usersService.getBannedUsersIds();
 
     return new PostsEntity(postData)
       .setCurrentUser(dto?.user)
@@ -65,8 +75,11 @@ export class PostsService {
     blogId: string,
     query: GetPostsQuery,
     dto: { user?: UserData },
-  ) {
-    const posts = await this.postsQueryRepository.findAllByBlog(blogId, query);
+  ): Promise<PaginationList<PostView[]>> {
+    const posts = await this.postsQueryRepository.findAllPostsByBlog(
+      blogId,
+      query,
+    );
 
     return {
       ...posts,
@@ -76,7 +89,11 @@ export class PostsService {
     };
   }
 
-  async updatePost(id: string, dto: UpdatePostDto, user?: UserData) {
+  async updatePost(
+    id: string,
+    params: UpdatePostParams,
+    user?: UserData,
+  ): Promise<PostView> {
     const existedPost = await this.postsRepository.findById(id);
 
     if (!existedPost) {
@@ -89,7 +106,7 @@ export class PostsService {
 
     const entity = new PostsEntity({
       ...existedPost,
-      ...dto,
+      ...params,
     }).setCurrentUser(user);
 
     await this.postsRepository.updateById(id, entity);
@@ -99,9 +116,9 @@ export class PostsService {
 
   async updatePostLikeStatusById(
     id: string,
-    dto: UpdatePostLikeStatusDto,
+    dto: UpdatePostLikeStatusParams,
     user?: UserData,
-  ) {
+  ): Promise<PostView> {
     const existedPost = await this.postsRepository.findById(id);
 
     if (!existedPost) {

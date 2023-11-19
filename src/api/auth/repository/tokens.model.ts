@@ -1,19 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-
-export interface DataToken {
-  _id?;
-  userId: string;
-  ip: string;
-  deviceId: string;
-  title: string;
-  refreshToken: string;
-  iat: Date;
-  exp: Date;
-}
+import { TokensModelData } from './tokens.model.types';
 
 @Schema({ collection: 'tokens' })
-export class TokensModel extends Document implements Omit<DataToken, '_id'> {
+export class TokensModel
+  extends Document
+  implements Omit<TokensModelData, '_id'>
+{
   @Prop({ required: true })
   public userId: string;
 

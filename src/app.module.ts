@@ -6,7 +6,7 @@ import { BlogsModule } from './api/blogs';
 import { PostsModule } from './api/posts';
 import { CommentsModule } from './api/comments';
 import { SecurityModule } from './api/security/security.module';
-import { BloggerModule } from './api/blogger/blogger.module';
+import { BloggersModule } from './api/bloggers/bloggers.module';
 import { SuperAdminModule } from './api/sa/sa.module';
 import { AuthModule } from './api/auth';
 
@@ -28,7 +28,7 @@ const getMongoDbConfig = (): MongooseModuleAsyncOptions => {
     BlogsModule,
     PostsModule,
     CommentsModule,
-    BloggerModule,
+    BloggersModule,
     SuperAdminModule,
   ],
   controllers: [],

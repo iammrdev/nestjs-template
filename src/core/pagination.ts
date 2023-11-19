@@ -14,7 +14,7 @@ export type PaginationView<T> = {
   items: T[];
 };
 
-const defaultMapper = (item) => item;
+const defaultMapper = <T>(item): T => item;
 
 export class Pagination<T> {
   public page: number;
@@ -36,13 +36,13 @@ export class Pagination<T> {
     return (this.page - 1) * this.pageSize;
   }
 
-  public setItems(items: T[]) {
+  public setItems(items: T[]): Pagination<T> {
     this.items = items;
 
     return this;
   }
 
-  public mapItems(mapper: (item: T) => T) {
+  public mapItems(mapper: (item: T) => T): Pagination<T> {
     this.items = this.items.map(mapper);
 
     return this;

@@ -20,7 +20,7 @@ export class BanBlogUseCase implements ICommandHandler<BanBlogCommand> {
     private readonly postsRepository: PostsRepository,
   ) {}
 
-  async execute(command: BanBlogCommand) {
+  async execute(command: BanBlogCommand): Promise<void> {
     const existedBlog = await this.blogsRepository.findByIdExtended(
       command.payload.blogId,
     );

@@ -1,12 +1,17 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import isAfter from 'date-fns/isAfter';
 import { UsersRepository } from '../../users/repository/users.repository';
-import { UsersEntity } from '../../users/service/users.entity';
+import { UserView, UsersEntity } from '../../users/service/users.entity';
 
 type CommandPayload = {
   code: string;
 };
+
+export type ConfirmRegistrationUseCaseResult = UserView;
 
 export class ConfirmRegistrationCommand {
   constructor(public payload: CommandPayload) {}
@@ -18,7 +23,9 @@ export class ConfirmRegistrationUseCase
 {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async execute(command: ConfirmRegistrationCommand) {
+  async execute(
+    command: ConfirmRegistrationCommand,
+  ): Promise<ConfirmRegistrationUseCaseResult> {
     const existedUser = await this.usersRepository.findByConfirmationCode(
       command.payload.code,
     );
@@ -43,6 +50,15 @@ export class ConfirmRegistrationUseCase
 
     const entity = new UsersEntity(existedUser).activate();
 
-    return this.usersRepository.updateById(existedUser.id, entity.toModel());
+    const updatedUser = await this.usersRepository.updateById(
+      existedUser.id,
+      entity.toModel(),
+    );
+
+    if (!updatedUser) {
+      throw new InternalServerErrorException('Incorrect update user data');
+    }
+
+    return updatedUser;
   }
 }

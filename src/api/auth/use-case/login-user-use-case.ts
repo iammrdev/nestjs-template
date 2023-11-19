@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UnauthorizedException } from '@nestjs/common';
-import { UsersEntity } from '../../users/service/users.entity';
+import { UserView, UsersEntity } from '../../users/service/users.entity';
 import { UsersRepository } from '../../users/repository/users.repository';
 import { AuthService } from '../service/auth.service';
 
@@ -11,10 +11,17 @@ type CommandPayload = {
   userAgent: string;
 };
 
+type Tokens = {
+  accessToken: string;
+  refreshToken: string;
+};
+
 export class VerifyUserDto {
   public loginOrEmail: string;
   public password: string;
 }
+
+export type LoginUserUseCaseResult = Tokens;
 
 export class LoginUserCommand {
   constructor(public payload: CommandPayload) {}
@@ -27,7 +34,7 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
     private readonly usersRepository: UsersRepository,
   ) {}
 
-  async verifyUser(dto: VerifyUserDto) {
+  async verifyUser(dto: VerifyUserDto): Promise<UserView> {
     const existedUser = await this.usersRepository.findByLoginOrEmail(
       dto.loginOrEmail,
     );
@@ -44,23 +51,21 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
       throw new UnauthorizedException('Unauthorized');
     }
 
-    return {
-      userId: userEntity.id,
-      login: userEntity.login,
-      email: userEntity.email,
-      createdAt: userEntity.createdAt,
-    };
+    return userEntity.toView();
   }
 
-  async execute(command: LoginUserCommand) {
+  async execute(command: LoginUserCommand): Promise<LoginUserUseCaseResult> {
     const verifiedUser = await this.verifyUser(command.payload);
 
-    const { accessToken, refreshToken } =
-      await this.authService.generateAuthInfo({
-        ...verifiedUser,
+    const { accessToken, refreshToken } = await this.authService.generateTokens(
+      {
+        userId: verifiedUser.id,
+        login: verifiedUser.login,
+        email: verifiedUser.email,
         ip: command.payload.ip,
         title: command.payload.userAgent,
-      });
+      },
+    );
 
     return { accessToken, refreshToken };
   }
