@@ -38,8 +38,10 @@ type Blog = {
   blogOwnerInfo: BlogOwnerInfo | null;
 };
 
-export type PostUsersRdo = User;
+export type PostUsersRdo = Omit<User, 'confirmation' | 'banInfo'>;
 
-export type GetUsersRdo = PaginationList<Omit<User, 'confirmation'>[]>;
+export type GetUsersRdo = PaginationList<
+  Omit<User, 'confirmation' | 'banInfo'>[]
+>;
 
 export type GetBlogsRdo = PaginationList<Blog[]>;

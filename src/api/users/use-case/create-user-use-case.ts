@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestException } from '@nestjs/common';
-import { UsersRepository } from '../repository/users.repository';
+import { UsersRepository } from '../repository';
 import { UserView, createUserEntity } from '../service/users.entity';
 
 type CommandPayload = {

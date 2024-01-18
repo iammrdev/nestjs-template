@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import isAfter from 'date-fns/isAfter';
-import { UsersRepository } from '../../users/repository/users.repository';
+import { UsersRepository } from '../../users/repository';
 import { UserView, UsersEntity } from '../../users/service/users.entity';
 
 type CommandPayload = {

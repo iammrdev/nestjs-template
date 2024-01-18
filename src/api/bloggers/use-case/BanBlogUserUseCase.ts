@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { BlogsRepository } from '../../blogs/repository/blogs.repository';
-import { UsersRepository } from '../../users/repository/users.repository';
+import { UsersRepository } from '../../users/repository';
 import { BloggersRepository } from '../repository/bloggers.repository';
 
 type CommandPayload = {

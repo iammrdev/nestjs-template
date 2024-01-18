@@ -1,4 +1,4 @@
-@baseUrl =  http://localhost:5000 
+@baseUrl =  http://localhost:5000
 @token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0OWIzYjkwMTFlNmIwN2Y4MDFjYmQzZCIsImxvZ2luIjoiaWFzaGNodWsyIiwiZW1haWwiOiJpYXNoY2h1azIuZGV2QGhtYWlsLmNvbSIsImRldmljZUlkIjoiZWE0ODA2ODgtMDZlOS00MjdlLWE3MjItNzhhOTNhYTNlN2RjIiwiaWF0IjoxNjg3OTAyMTc0LCJleHAiOjE2ODc5MDI1MzR9.i_c_sU6nIDbFGc8MK1Icv_XY_qrPaJrQEJGrWRm41iY
 
 ## Login
@@ -25,9 +25,9 @@ POST {{baseUrl}}/auth/registration HTTP/1.1
 Content-Type: application/json
 
 {
-  "login": "iashchuk",
+  "login": "test2",
   "password": "123456",
-  "email": "221box@list.ru"
+  "email": "test2@local.io"
 }
 
 ###
@@ -77,13 +77,19 @@ Content-Type: application/json
 ## Refresh Token
 POST {{baseUrl}}/auth/refresh-token HTTP/1.1
 Content-Type: application/json
-Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDZiZWQ5Yjc3MWY1YTQzMzE4YzcyYjEiLCJlbWFpbCI6IjIyMWJveEBsaXN0LnJ1IiwiaWF0IjoxNjg0ODczNzM4LCJleHAiOjE2ODQ4NzQ0NTh9.eVRT8IVy458viajzhtiSc-EJkzBrLkMiGSrvnBlILVg
+Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1OWMxYmJmMDQzZmY1ODhlZGY1ZmIwMiIsImxvZ2luIjoiaWFzaGNodWsiLCJlbWFpbCI6IjIyMWJveEBsaXN0LnJ1IiwiZGV2aWNlSWQiOiI1NWQ4NWIwOS05YjNkLTRmMGItYTVkZC04NGExYmM4M2FhNTUiLCJpYXQiOjE3MDQ3MzIwNjAsImV4cCI6MTcwNDczNDA2MH0.fmbAitDmZMbQErvTMgBYwYJ99z_YXRic0jP3hWN2-pM
 
 ###
 
 ## Logout
 POST {{baseUrl}}/auth/logout HTTP/1.1
 Content-Type: application/json
-Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDZiZWQ5Yjc3MWY1YTQzMzE4YzcyYjEiLCJlbWFpbCI6IjIyMWJveEBsaXN0LnJ1IiwiaWF0IjoxNjg0ODc0NTg3LCJleHAiOjE2ODQ4NzUzMDd9.q8MosDWqJXEw4iRcPIzWZHscH7M4SVz3B9BOMVie0sQ
+Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxMzVlZTQ0LThjZDAtNDU4Mi1iYTk5LWI0NjEyYWUwZTAzMyIsImxvZ2luIjoibGctNjQxMzQ3IiwiZW1haWwiOiJlbWFpbDY0MTM0N0BnZy5jb20iLCJkZXZpY2VJZCI6IjY4MjU3NzllLWUzZDktNGY5Mi1iYjYwLTU3Y2Y2NjhlNGQ4NiIsImlhdCI6MTcwNTY3MjY3MCwiZXhwIjoxNzA1NjcyNjkwfQ.OhbqqxcFQwZcT5TSZd7ZyY9LthGc4d5hxzz-gu5qGA4
+
+###
+
+## Get test sql
+GET {{baseUrl}}/auth/test HTTP/1.1
+Content-Type: application/json
 
 ###

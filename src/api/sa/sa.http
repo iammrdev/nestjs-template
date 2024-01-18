@@ -1,7 +1,7 @@
 @baseUrl =  http://localhost:5000 
 @token = 
 @id = 
-@paginationParams = 
+@paginationParams = pageSize=15&pageNumber=1&searchLoginTerm=seR&searchEmailTerm=.com&sortDirection=asc&sortBy=login
 
 
 ## Create new user
@@ -10,9 +10,9 @@ Content-Type: application/json
 Authorization: Basic YWRtaW46cXdlcnR5
 
 {
-  "login": "adminX2",
+  "login": "log01",
   "password": "123456",
-  "email": "adminX2@local.io"
+  "email": "log01@local.com"
 }
 
 ###

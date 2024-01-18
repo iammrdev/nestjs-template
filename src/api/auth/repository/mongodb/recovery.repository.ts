@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { RecoveryModel } from './recovery.model';
-import { RecoveryModelData } from './recovery.model.types';
+import { RecoveryModelData } from '../recovery.model.types';
 
 @Injectable()
-export class RecoveryRepository {
+export class RecoveryMongoDBRepository {
   constructor(
     @InjectModel(RecoveryModel.name)
     private readonly recoveryModel: Model<RecoveryModel>,

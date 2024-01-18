@@ -15,7 +15,7 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from '../service/users.service';
 import { BasicGuard } from '../../../app/auth-basic/basic.strategy';
 import { CreateUserCommand } from '../use-case/create-user-use-case';
-import { UsersQueryRepository } from '../repository/users.query.repository';
+import { UsersQueryRepository } from '../repository';
 import { buildObject } from '../../../core/buildObject';
 import { PostDto, GetQuery } from './users.controller.dto';
 import { PostRdo, GetRdo } from './users.rdo';

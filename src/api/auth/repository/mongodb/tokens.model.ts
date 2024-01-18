@@ -1,26 +1,26 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { RecoveryModelData } from './recovery.model.types';
+import { TokensModelData } from '../tokens.model.types';
 
-@Schema({ collection: 'recovery' })
-export class RecoveryModel
+@Schema({ collection: 'tokens' })
+export class TokensModel
   extends Document
-  implements Omit<RecoveryModelData, '_id'>
+  implements Omit<TokensModelData, '_id'>
 {
   @Prop({ required: true })
   public userId: string;
 
   @Prop({ required: true })
-  public deviceId: string;
+  public ip: string;
 
   @Prop({ required: true })
-  public ip: string;
+  public deviceId: string;
 
   @Prop({ required: true })
   public title: string;
 
   @Prop({ required: true })
-  public code: string;
+  public refreshToken: string;
 
   @Prop({ required: true })
   public iat: Date;
@@ -29,4 +29,4 @@ export class RecoveryModel
   public exp: Date;
 }
 
-export const RecoverySchema = SchemaFactory.createForClass(RecoveryModel);
+export const TokensSchema = SchemaFactory.createForClass(TokensModel);

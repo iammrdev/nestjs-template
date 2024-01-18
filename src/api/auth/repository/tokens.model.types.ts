@@ -1,4 +1,5 @@
 export interface TokensModelData {
+  id?;
   _id?;
   userId: string;
   ip: string;

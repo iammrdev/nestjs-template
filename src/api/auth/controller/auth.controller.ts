@@ -46,7 +46,7 @@ import {
   LogoutUserCommand,
   LogoutUserUseCaseResult,
 } from '../use-case/logout-user-use-case';
-import { UsersRepository } from '../../users/repository/users.repository';
+import { UsersRepository } from '../../users/repository';
 import {
   CreateUserCommand,
   CreateUserUseCaseResult,

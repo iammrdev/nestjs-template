@@ -19,7 +19,7 @@ export class Mailer {
       secure: true,
       auth: {
         user: 'iashchuk.dev@mail.ru',
-        pass: '6AGbkEegyJRVWBjZHdiY',
+        pass: 'iJx3KQzjut6xNe6EGGPS',
       },
       tls: {
         rejectUnauthorized: false,

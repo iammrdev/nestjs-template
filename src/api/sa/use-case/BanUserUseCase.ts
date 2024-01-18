@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestException } from '@nestjs/common';
-import { UsersRepository } from '../../users/repository/users.repository';
+import { UsersRepository } from '../../users/repository';
 import { UsersEntity } from '../../users/service/users.entity';
-import { TokensRepository } from '../../auth/repository/tokens.repository';
+import { TokensRepository } from '../../auth/repository';
 import { PostsRepository } from '../../posts/repository/posts.repository';
 import { CommentsRepository } from '../../comments/repository/comments.repository';
 

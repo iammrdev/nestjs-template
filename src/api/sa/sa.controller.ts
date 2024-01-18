@@ -23,7 +23,7 @@ import {
   CreateUserCommand,
   CreateUserUseCaseResult,
 } from '../users/use-case/create-user-use-case';
-import { UsersQueryRepository } from '../users/repository/users.query.repository';
+import { UsersQueryRepository } from '../users/repository';
 import {
   PutBanByBlogDto,
   PutBanByUserDto,
@@ -32,6 +32,7 @@ import {
   GetUsersQuery,
 } from './sa.controller.dto';
 import { GetBlogsRdo, GetUsersRdo, PostUsersRdo } from './sa.controller.rdo';
+import omit from 'lodash.omit';
 
 @ApiTags('sa')
 @Controller('sa')
@@ -51,14 +52,14 @@ export class SuperAdminController {
       new CreateUserCommand(dto),
     );
 
-    return result;
+    return omit(result, ['confirmation', 'banInfo']);
   }
 
   @ApiResponse({ status: HttpStatus.OK, description: 'Success' })
   @Get('users')
   @UseGuards(BasicGuard)
   async getUsers(@Query() query: GetUsersQuery): Promise<GetUsersRdo> {
-    return this.usersQueryRepository.findAllWithBanInfo(query);
+    return this.usersQueryRepository.findAllUsers(query);
   }
 
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'No Content' })

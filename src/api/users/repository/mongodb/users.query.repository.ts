@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { AnyObject, Model } from 'mongoose';
-import { Pagination } from '../../../core/pagination';
-import { AppUser } from '../../../types/users';
+import { Pagination } from '../../../../core/pagination';
+import { AppUser } from '../../../../types/users';
 import { UsersModel } from './users.model';
-import { UsersModelData } from './user.model.types';
+import { UsersModelData } from '../user.model.types';
 import {
   FindAllUsersParams,
   FindAllUsersResponse,
   FindAllUsersWithBanInfoParams,
   FindAllUsersWithBanInfoResponse,
-} from './users.query.repository.types';
+} from '../users.query.repository.types';
 
 @Injectable()
 export class UsersQueryRepository {

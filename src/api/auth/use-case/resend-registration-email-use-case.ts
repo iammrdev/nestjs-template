@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { EmailService } from '../../../app/emails/email.service';
-import { UsersRepository } from '../../users/repository/users.repository';
+import { UsersRepository } from '../../users/repository';
 import { UsersEntity } from '../../users/service/users.entity';
 
 type CommandPayload = {

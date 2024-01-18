@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { AnyObject, Model } from 'mongoose';
 import { TokensModel } from './tokens.model';
-import { AppToken } from '../../../types/tokens';
-import { TokensModelData } from './tokens.model.types';
+import { AppToken } from '../../../../types/tokens';
+import { TokensModelData } from '../tokens.model.types';
 
 @Injectable()
-export class TokensRepository {
+export class TokensMongoDBRepository {
   constructor(
     @InjectModel(TokensModel.name)
     private readonly tokensModel: Model<TokensModel>,
@@ -51,8 +51,8 @@ export class TokensRepository {
     return dbToken && this.buildToken(dbToken);
   }
 
-  public async deleteById(id: string): Promise<number> {
-    return (await this.tokensModel.deleteOne({ _id: id })).deletedCount;
+  public async deleteById(id: string): Promise<void> {
+    await this.tokensModel.deleteOne({ _id: id });
   }
 
   public async deleteByUser(

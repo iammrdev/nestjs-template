@@ -3,8 +3,8 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { RecoveryRepository } from '../repository/recovery.repository';
-import { UsersRepository } from '../../users/repository/users.repository';
+import { RecoveryRepository } from '../repository';
+import { UsersRepository } from '../../users/repository';
 import { UserView, UsersEntity } from '../../users/service/users.entity';
 
 type CommandPayload = {

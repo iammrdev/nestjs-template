@@ -2,8 +2,8 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { InternalServerErrorException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import add from 'date-fns/add';
-import { RecoveryRepository } from '../repository/recovery.repository';
-import { UsersRepository } from '../../users/repository/users.repository';
+import { RecoveryRepository } from '../repository';
+import { UsersRepository } from '../../users/repository';
 import { EmailService } from '../../../app/emails/email.service';
 
 type CommandPayload = {

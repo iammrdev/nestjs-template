@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UnauthorizedException } from '@nestjs/common';
-import { TokensRepository } from '../repository/tokens.repository';
+import { TokensRepository } from '../repository';
 import { AuthService } from '../service/auth.service';
 
 type CommandPayload = {

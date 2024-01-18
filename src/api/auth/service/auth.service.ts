@@ -7,8 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuidv4 } from 'uuid';
 
-import { TokensRepository } from '../repository/tokens.repository';
-import { RecoveryRepository } from '../repository/recovery.repository';
+import { TokensRepository, RecoveryRepository } from '../repository';
 import { JWTPayload, JWTPayloadInfo } from '../../../types/auth';
 import { GenerateTokensParams } from './auth.service.types';
 import { AppToken } from '../../../types/tokens';
