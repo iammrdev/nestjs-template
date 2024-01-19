@@ -18,7 +18,7 @@ import { BasicGuard } from '../../app/auth-basic/basic.strategy';
 import { BanUserCommand } from './use-case/BanUserUseCase';
 import { BindUserWithBlogCommand } from './use-case/BindUserWithBlogUseCase';
 import { BanBlogCommand } from './use-case/BanBlogUseCase';
-import { BlogsQueryRepository } from '../blogs/repository/blogs.query.repository';
+import { BlogsQueryRepository } from '../blogs/repository';
 import {
   CreateUserCommand,
   CreateUserUseCaseResult,

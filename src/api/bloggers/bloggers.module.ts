@@ -2,9 +2,12 @@ import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CqrsModule } from '@nestjs/cqrs';
 import { PostsModule } from '../posts/posts.module';
-import { BlogsModel, BlogsSchema } from '../blogs/repository/blogs.model';
+import {
+  BlogsModel,
+  BlogsSchema,
+} from '../blogs/repository/mongodb/blogs.model';
 import { BlogsService } from '../blogs';
-import { BlogsRepository } from '../blogs/repository/blogs.repository';
+import { BlogsRepository } from '../blogs/repository';
 import { BloggerController } from './controller/bloggers.controller';
 import { BanBlogUserUseCase } from './use-case/BanBlogUserUseCase';
 import { BloggersRepository } from './repository/bloggers.repository';
@@ -13,7 +16,7 @@ import { UsersModule } from '../users';
 import { GetAllCommentsByUserUseCase } from './use-case/GetAllCommentsByUserUseCase';
 import { CommentsModule } from '../comments';
 import { GetUsersByBlogUseCase } from './use-case/GetUsersByBlogUseCase';
-import { BlogsQueryRepository } from '../blogs/repository/blogs.query.repository';
+import { BlogsQueryRepository } from '../blogs/repository';
 import { BloggersQueryRepository } from './repository/bloggers.query.repository';
 
 @Module({

@@ -21,8 +21,7 @@ import { ConfirmRegistrationUseCase } from './use-case/confirm-registration-use-
 import { RecoveryPasswordUseCase } from './use-case/recovery-password-use-case.ts';
 import { GenerateNewTokensUseCase } from './use-case/generate-new-tokens-use-case';
 import { LogoutUserUseCase } from './use-case/logout-user-use-case';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -35,8 +34,8 @@ import { APP_GUARD } from '@nestjs/core';
     ]),
     ThrottlerModule.forRoot([
       {
-        ttl: 60000,
-        limit: 5,
+        ttl: 10000,
+        limit: 100,
       },
     ]),
     UsersModule,
@@ -58,10 +57,6 @@ import { APP_GUARD } from '@nestjs/core';
     ConfirmRegistrationUseCase,
     RecoveryPasswordUseCase,
     GenerateNewTokensUseCase,
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
   ],
 })
 export class AuthModule {}

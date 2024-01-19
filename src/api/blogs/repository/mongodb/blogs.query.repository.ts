@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { AnyObject, Model } from 'mongoose';
-import { AppBlog, AppBlogExtended } from '../../../types/blogs';
-import { Pagination } from '../../../core/pagination';
-import { BlogsModelData } from './blogs.model.types';
+import { AppBlog, AppBlogExtended } from '../../../../types/blogs';
+import { Pagination } from '../../../../core/pagination';
+import { BlogsModelData } from '../blogs.model.types';
 import {
   FindAllBlogsByUserResponse,
   FindAllBlogsByUserWithPaginationResponse,
   FindAllBlogsExtendedResponse,
   FindAllBlogsParams,
   FindAllBlogsResponse,
-} from './blogs.query.repository.types';
+} from '../blogs.query.repository.types';
 import { BlogsModel } from './blogs.model';
 
 @Injectable()

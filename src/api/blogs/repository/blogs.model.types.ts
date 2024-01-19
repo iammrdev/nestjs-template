@@ -26,3 +26,16 @@ export type BlogsModelData = {
   banInfo: BanInfo;
   createdAt: Date;
 };
+
+export type BlogsSQLModelData = {
+  id: string;
+  name: string;
+  description: string;
+  websiteUrl: string;
+  isMembership: boolean;
+  blogOwnerInfoUserId: string | null;
+  blogOwnerInfoUserLogin: string | null;
+  banInfoIsBanned: boolean;
+  banInfoBanDate: Date | null;
+  createdAt: Date;
+};

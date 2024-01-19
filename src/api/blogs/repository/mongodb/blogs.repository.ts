@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { AppBlog, AppBlogExtended } from '../../../types/blogs';
-import { BlogsModelData } from './blogs.model.types';
+import { AppBlog, AppBlogExtended } from '../../../../types/blogs';
+import { BlogsModelData } from '../blogs.model.types';
 import { BlogsModel } from './blogs.model';
 
 @Injectable()

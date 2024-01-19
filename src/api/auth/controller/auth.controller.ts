@@ -67,7 +67,9 @@ import {
   PostNewPasswordRdo,
   PostRefreshTokenRdo,
 } from './auth.rdo';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
+@UseGuards(ThrottlerGuard)
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {

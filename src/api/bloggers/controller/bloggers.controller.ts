@@ -42,7 +42,7 @@ import {
   GetUsersByBlogCommand,
   GetUsersByBlogUseCaseResult,
 } from '../use-case/GetUsersByBlogUseCase';
-import { BlogsQueryRepository } from '../../blogs/repository/blogs.query.repository';
+import { BlogsQueryRepository } from '../../blogs/repository';
 import {
   GetBlogsRdo,
   GetCommentsRdo,

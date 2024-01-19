@@ -1,16 +1,16 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { BlogsModel, BlogsSchema } from './repository/blogs.model';
+import { BlogsModel, BlogsSchema } from './repository/mongodb/blogs.model';
 import { BlogsService } from './service/blogs.service';
 import { BlogsController } from './controller/blogs.controller';
-import { BlogsRepository } from './repository/blogs.repository';
+import { BlogsRepository } from './repository';
 import { PostsModule } from '../posts/posts.module';
 import {
   BloggersModel,
   BloggersSchema,
 } from '../bloggers/repository/bloggers.model';
 import { BloggersRepository } from '../bloggers/repository/bloggers.repository';
-import { BlogsQueryRepository } from './repository/blogs.query.repository';
+import { BlogsQueryRepository } from './repository';
 import { BloggersQueryRepository } from '../bloggers/repository/bloggers.query.repository';
 
 @Module({

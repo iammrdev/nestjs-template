@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CommentsEntity } from '../../comments/service/comments.entity';
-import { BlogsQueryRepository } from '../../blogs/repository/blogs.query.repository';
+import { BlogsQueryRepository } from '../../blogs/repository';
 import { PostsQueryRepository } from '../../posts/repository/posts.query.repository';
 import { CommentsQueryRepository } from '../../comments/repository/comments.query.repository';
 import { PaginationList } from '../../../types/common';

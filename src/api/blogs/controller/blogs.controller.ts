@@ -21,7 +21,7 @@ import { BasicGuard } from '../../../app/auth-basic/basic.strategy';
 import { JwtAccessTokenInfo } from '../../../app/auth-jwt-access/jwt-access-token.info';
 import { CurrentUser } from '../../../core/pipes/current-user.pipe';
 import { AccessTokenUserInfo } from '../../../app/auth-jwt-access/jwt-access-token.strategy';
-import { BlogsQueryRepository } from '../repository/blogs.query.repository';
+import { BlogsQueryRepository } from '../repository';
 import {
   PostDto,
   PostPostsByIdDto,

@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AppBlog, AppBlogExtended } from '../../../types/blogs';
-import { BlogsRepository } from '../repository/blogs.repository';
+import { BlogsRepository } from '../repository';
 import { BlogsEntity } from './blogs.entity';
 import {
   CreateBlogParams,

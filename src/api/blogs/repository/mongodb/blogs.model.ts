@@ -1,6 +1,6 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { BanInfo, BlogsModelData, BlogOwnerInfo } from './blogs.model.types';
+import { BanInfo, BlogsModelData, BlogOwnerInfo } from '../blogs.model.types';
 
 @Schema({ collection: 'blogs' })
 export class BlogsModel
