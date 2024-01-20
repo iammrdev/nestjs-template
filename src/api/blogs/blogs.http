@@ -49,14 +49,14 @@ DELETE {{baseUrl}}/blogs/{{id}} HTTP/1.1
 ###
 
 ## Get post list by blog
-GET {{baseUrl}}/blogs/{{id}}/posts HTTP/1.1
+GET {{baseUrl}}/blogs/82d172e0-03e5-4dee-9f6b-e6d18ef79525/posts HTTP/1.1
 Content-Type: application/json
 
 ###
 
 ## Create post by blog
 
-POST {{baseUrl}}/blogs/646ffb8023a4fd17363a758b/posts HTTP/1.1
+POST {{baseUrl}}/blogs/82d172e0-03e5-4dee-9f6b-e6d18ef79525/posts HTTP/1.1
 Content-Type: application/json
 Authorization: Basic YWRtaW46cXdlcnR5
 

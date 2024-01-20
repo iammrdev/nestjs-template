@@ -16,6 +16,14 @@ Content-Type: application/json
 
 ###
 
+###
+
+## Get post by id
+GET {{baseUrl}}/posts/99ce549a-a15e-4591-be7b-b8c1402e0e56 HTTP/1.1
+Content-Type: application/json
+
+###
+
 ## Update post by id
 PUT {{baseUrl}}/posts/26aed245-3347-4466-bc4c-584603cc77e8 HTTP/1.1
 Authorization: Basic YWRtaW46cXdlcnR5

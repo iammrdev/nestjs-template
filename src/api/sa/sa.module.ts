@@ -10,6 +10,7 @@ import { BanUserUseCase } from './use-case/BanUserUseCase';
 import { BindUserWithBlogUseCase } from './use-case/BindUserWithBlogUseCase';
 import { BanBlogUseCase } from './use-case/BanBlogUseCase';
 import { CreateUserUseCase } from '../users/use-case/create-user-use-case';
+import { BlogIdValidator } from './sa.controller.dto';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { CreateUserUseCase } from '../users/use-case/create-user-use-case';
     BanUserUseCase,
     BindUserWithBlogUseCase,
     BanBlogUseCase,
+    BlogIdValidator,
   ],
 })
 export class SuperAdminModule {}

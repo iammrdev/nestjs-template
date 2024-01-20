@@ -37,7 +37,7 @@ export class PostsQuerySQLRepository {
     let filter = ` WHERE "status" != 'hidden-by-ban'`;
 
     if (params) {
-      filter = `${filter} AND ${params}`;
+      filter = `${filter} AND "blogId"='${params.blogId}'`;
     }
 
     return filter;
