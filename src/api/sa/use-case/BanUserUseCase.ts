@@ -3,7 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { UsersRepository } from '../../users/repository';
 import { UsersEntity } from '../../users/service/users.entity';
 import { TokensRepository } from '../../auth/repository';
-import { PostsRepository } from '../../posts/repository/posts.repository';
+import { PostsRepository } from '../../posts/repository';
 import { CommentsRepository } from '../../comments/repository/comments.repository';
 
 type CommandPayload = {

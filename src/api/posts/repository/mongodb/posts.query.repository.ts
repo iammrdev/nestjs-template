@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { AnyObject, Model } from 'mongoose';
 import { PostsModel } from './posts.model';
-import { Pagination } from '../../../core/pagination';
-import { PostsModelData } from './posts.model.types';
+import { Pagination } from '../../../../core/pagination';
+import { PostsModelData } from '../posts.model.types';
 import {
   FindAllPostsByBlogResponse,
   FindAllPostsByBlogsResponse,
   FindAllPostsResponse,
   GetPostsParams,
-} from './posts.query.repository.types';
-import { AppPost } from '../../../types/posts';
+} from '../posts.query.repository.types';
+import { AppPost } from '../../../../types/posts';
 
 @Injectable()
 export class PostsQueryRepository {

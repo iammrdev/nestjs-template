@@ -10,10 +10,10 @@ import {
   UpdatePostLikeStatusParams,
   UserData,
 } from './posts.service.types';
-import { PostsRepository } from '../repository/posts.repository';
+import { PostsRepository } from '../repository';
 import { PostView, PostsEntity, createPostEntity } from './posts.entity';
 import { UsersService } from '../../users';
-import { PostsQueryRepository } from '../repository/posts.query.repository';
+import { PostsQueryRepository } from '../repository';
 import { PaginationList } from 'src/types/common';
 
 @Injectable()

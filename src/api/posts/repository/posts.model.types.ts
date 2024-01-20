@@ -25,3 +25,17 @@ export type PostsModelData = {
   authorId?: string;
   status: Status;
 };
+
+export type PostsSQLModelData = {
+  id: string;
+  title: string;
+  shortDescription: string;
+  content: string;
+  blogId: string;
+  blogName: string;
+  createdAt: Date;
+  likesInfoLikes: null;
+  likesInfoDislikes: null;
+  authorId?: string;
+  status: Status;
+};

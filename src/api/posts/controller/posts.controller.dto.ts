@@ -11,17 +11,17 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { Types } from 'mongoose';
+//import { Types } from 'mongoose';
 import { BlogsService } from '../../blogs';
 import { Injectable } from '@nestjs/common';
 import { LikeStatus } from '../../../types/likes';
 
-@ValidatorConstraint({ name: 'invalid mongo id', async: false })
-export class MongoIdValidator implements ValidatorConstraintInterface {
-  validate(id: string): boolean {
-    return Types.ObjectId.isValid(id);
-  }
-}
+// @ValidatorConstraint({ name: 'invalid mongo id', async: false })
+// export class MongoIdValidator implements ValidatorConstraintInterface {
+//   validate(id: string): boolean {
+//     return Types.ObjectId.isValid(id);
+//   }
+// }
 
 @ValidatorConstraint({ name: 'invalid blog', async: true })
 @Injectable()
@@ -61,7 +61,7 @@ export class PostDto {
   @IsString()
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
-  @Validate(MongoIdValidator, { message: 'Invalid blogId' })
+  //@Validate(MongoIdValidator, { message: 'Invalid blogId' })
   @Validate(BlogIdValidator, { message: 'Invalid blogId' })
   public blogId: string;
 }
@@ -92,7 +92,7 @@ export class PutByIdDto {
   @IsString()
   @Transform(({ value }) => value.trim())
   @IsNotEmpty()
-  @Validate(MongoIdValidator, { message: 'Invalid blogId' })
+  //@Validate(MongoIdValidator, { message: 'Invalid blogId' })
   @Validate(BlogIdValidator, { message: 'Invalid blogId' })
   public blogId: string;
 }

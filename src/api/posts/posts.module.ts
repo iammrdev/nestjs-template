@@ -1,14 +1,14 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { PostsModel, PostsSchema } from './repository/posts.model';
+import { PostsModel, PostsSchema } from './repository/mongodb/posts.model';
 import { PostsService } from './service/posts.service';
 import { PostsController } from './controller/posts.controller';
-import { PostsRepository } from './repository/posts.repository';
+import { PostsRepository } from './repository';
 import { BlogsModule } from '../blogs/blogs.module';
 import { CommentsModule } from '../comments/comments.module';
 import { UsersModule } from '../users';
 import { BlogIdValidator } from './controller/posts.controller.dto';
-import { PostsQueryRepository } from './repository/posts.query.repository';
+import { PostsQueryRepository } from './repository';
 import { BloggersService } from '../bloggers/service/bloggers.service';
 
 @Module({

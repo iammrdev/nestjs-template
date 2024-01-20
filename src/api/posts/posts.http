@@ -12,12 +12,12 @@ POST {{baseUrl}}/posts HTTP/1.1
 Authorization: Basic YWRtaW46cXdlcnR5
 Content-Type: application/json
 
-{"title":"valid","content":"valid","blogId":"6553c3acca72c9f694492b57","shortDescription":"lengthYFQOoCIwGnlX5sP3aW3RlaRSQx"}
+{"title":"valid","content":"valid","blogId":"66ac7d02-6ef4-4353-8725-8d648039b6d8","shortDescription":"lengthYFQOoCIwGnlX5sP3aW3RlaRSQx"}
 
 ###
 
 ## Update post by id
-PUT {{baseUrl}}/posts/647b39c64ffc9a46720289cc HTTP/1.1
+PUT {{baseUrl}}/posts/26aed245-3347-4466-bc4c-584603cc77e8 HTTP/1.1
 Authorization: Basic YWRtaW46cXdlcnR5
 Content-Type: application/json
 
@@ -25,7 +25,7 @@ Content-Type: application/json
   "title": "My memo useEffect",
   "content": "About new react features",
   "shortDescription": "https://nestjs-template.vercel.app",
-  "blogId": "647b39b24ffc9a46720289c1"
+  "blogId": "66ac7d02-6ef4-4353-8725-8d648039b6d8"
 }
 
 ###
